@@ -13,7 +13,16 @@ from pathlib import Path
 from .contest_config import ContestConfig, PUBLIC
 from .contest_dialogue import parse_opening, parse_reply
 from .contest_index import ContestIndex
-from .contest_rank import candidate_pool, defer_for_overlap, hard_pool, pad, rank, should_withhold
+from .contest_llm import listwise_rerank
+from .contest_rank import (
+    candidate_pool,
+    defer_for_overlap,
+    hard_pool,
+    pad,
+    rank,
+    rrf_blend_ranks,
+    should_withhold,
+)
 from .contest_response import guard_response
 from .contest_slots import ContestState
 from .contest_text import CHROME
@@ -93,11 +102,22 @@ class ContestAgent:
         if not withhold and defer_for_overlap(self.index, state, self.config, working):
             withhold = True
         ranked: list[int] = []
+        usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
         if not withhold:
             ranked = rank(self.index, state, self.config, working, limit=max(limit, 24))
             if self.config.pad_to_top_k:
                 ranked = pad(self.index, ranked, working, limit)
             ranked = ranked[:limit]
+            if (
+                self.config.llm_listwise
+                and 2 <= len(ranked) <= self.config.llm_pool_limit
+            ):
+                reordered, llm_usage = listwise_rerank(self.index, state, ranked)
+                usage = llm_usage
+                if reordered:
+                    ranked = rrf_blend_ranks(
+                        ranked, reordered, rrf_k=60, ids=self.index.ids
+                    )[:limit]
 
         ask = self._choose_ask(state)
         state.pending = ask
@@ -125,7 +145,7 @@ class ContestAgent:
             "message": self._message(state, ask, withhold, len(ranked)),
             "ask_attribute": ask,
             "recommendations": [{"parent_asin": self.index.ids[idx]} for idx in ranked],
-            "usage": {"prompt_tokens": 0, "completion_tokens": 0},
+            "usage": usage,
         }
 
     def _apply_reply(self, state: ContestState, message: str) -> None:

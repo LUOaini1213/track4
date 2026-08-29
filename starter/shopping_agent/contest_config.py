@@ -33,6 +33,10 @@ class ContestConfig:
     # leaves lexical/popularity ranking unchanged.
     w_rerank: float = 0.0
     rerank_pool_limit: int = 80
+    # Listwise LLM reorder of the already-ranked shortlist. False keeps the
+    # 0-token path. Missing key/timeout/bad JSON leaves ranking unchanged.
+    llm_listwise: bool = False
+    llm_pool_limit: int = 10
     # If >0, still recommend when this many slots are known and the working
     # pool is at most evidence_pool_cap, even if it is larger than gate_size.
     # Cuts MTTC on sessions that already have a 3-slot conjunction but sit
@@ -65,6 +69,9 @@ class ContestConfig:
     # Union the popularity top-N with the blended top-N, then RRF-sort.
     # Holdout Hit 0.975→0.97; keep off.
     dense_rrf_k: int = 0
+    # Same-pool RRF of rank lists (popularity, exact-line, title phrase,
+    # MiniLM). 0 keeps linear weights. Not the rejected pop∪dense union.
+    pool_rrf_k: int = 0
     # Skip MiniLM when every disclosed slot is a catalog-generic token
     # (cotton/imported/color). Saves pop-rank-8 generic misses without
     # blocking distinctive promotions like "rubber sole".
@@ -152,6 +159,9 @@ PUBLIC = ContestConfig(
     dense_pool_limit=80,
     dense_pop_floor=0,
     dense_rrf_k=0,
+    # Same-pool rank RRF k=60: public Hit 0.99 / 0.932838, holdout Hit 0.975
+    # / 0.890185. Keep off (not the rejected pop∪dense union RRF).
+    pool_rrf_k=0,
     dense_skip_generic=True,
     dense_generic_cap=0,
     # Tiny-pool MiniLM extra weight. generic_cap=6 + tiny=0.25: holdout
@@ -190,4 +200,7 @@ PUBLIC = ContestConfig(
     # holdout 0.898118 Hit 0.980. Promote; skip cotton/color/imported slots.
     w_phrase=0.15,
     phrase_pool_limit=40,
+    # Listwise LLM on recommend shortlists. Keep off until holdout > 0.8981.
+    llm_listwise=False,
+    llm_pool_limit=10,
 )

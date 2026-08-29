@@ -21,6 +21,7 @@
 | [optimize.md](optimize.md) | 还怎么涨分（不要再刷公开集） |
 | [optimize_kb.md](optimize_kb.md) | **不要新建知识库**；硬池 IDF/BM25 优先 |
 | [architecture.md](architecture.md) | 计分路径数据流；从 group `main` 吸收的 override 分档 / 响应守卫 |
+| [complete_agent.md](complete_agent.md) | 五段完整 Agent：RRF 实测、LLM blend、门控、为何不做 LambdaMART |
 | [submit.md](submit.md) | 复现命令、0 token / $0、延迟、限制、贡献 |
 | [rubric_4_6.md](rubric_4_6.md) | Image #1 五轴对照；IDF / 独占稀有词 / 泛约束小池 MiniLM 均未进 PUBLIC |
 

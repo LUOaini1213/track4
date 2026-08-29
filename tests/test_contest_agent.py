@@ -10,6 +10,7 @@ from pathlib import Path
 from starter.shopping_agent.contest_agent import ContestAgent
 from starter.shopping_agent.contest_config import CLASSMATE, KHANNA, PUBLIC, ContestConfig
 from starter.shopping_agent.contest_dense import PoolDenseEncoder, set_encoder
+from starter.shopping_agent.contest_llm import parse_order, set_completer
 from starter.shopping_agent.contest_rerank import PoolReranker, set_reranker
 from starter.shopping_agent.contest_dialogue import parse_opening, parse_reply
 from starter.shopping_agent.contest_index import ContestIndex
@@ -71,6 +72,7 @@ class ContestAgentTests(unittest.TestCase):
     def tearDown(self) -> None:
         set_encoder(None)
         set_reranker(None)
+        set_completer(None)
         self.tempdir.cleanup()
 
     def test_evaluator_facade_is_contest_public(self) -> None:
@@ -91,6 +93,8 @@ class ContestAgentTests(unittest.TestCase):
         self.assertEqual(agent.config.w_field, 0.35)
         self.assertFalse(agent.config.dense_skip_field_flat)
         self.assertEqual(agent.config.w_phrase, 0.15)
+        self.assertFalse(agent.config.llm_listwise)
+        self.assertEqual(agent.config.pool_rrf_k, 0)
 
     def test_opening_templates(self) -> None:
         lookup = {"shirts": "Shirts", "boots": "Boots"}
@@ -1320,6 +1324,128 @@ class ContestAgentTests(unittest.TestCase):
         on = replace(off, w_phrase=0.35)
         self.assertEqual(index.ids[rank(index, state, off, pool, limit=1)[0]], "HOT")
         self.assertEqual(index.ids[rank(index, state, on, pool, limit=1)[0]], "TARGET")
+
+    def test_pool_rrf_same_ids_outranks_hotter_blob_clone(self) -> None:
+        rows = [
+            {
+                "parent_asin": "HOT",
+                "title": "Everyday cotton shirt",
+                "features": ["soft cotton jersey"],
+                "description": ["The ribbed crew neck is comfortable"],
+                "categories": ["Shirts"],
+                "details": {"department": "mens"},
+                "store": "HotBrand",
+                "price": 18.0,
+                "average_rating": 4.9,
+                "rating_number": 90,
+            },
+            {
+                "parent_asin": "MID",
+                "title": "Cotton layer",
+                "features": ["soft cotton jersey"],
+                "description": ["ribbed crew neck mentioned"],
+                "categories": ["Shirts"],
+                "details": {"department": "mens"},
+                "store": "MidBrand",
+                "price": 18.0,
+                "average_rating": 4.5,
+                "rating_number": 55,
+            },
+            {
+                "parent_asin": "TARGET",
+                "title": "Ribbed crew neck cotton shirt",
+                "features": ["ribbed crew neck"],
+                "description": ["tee"],
+                "categories": ["Shirts"],
+                "details": {"department": "mens"},
+                "store": "QuietBrand",
+                "price": 18.0,
+                "average_rating": 4.8,
+                "rating_number": 40,
+            },
+        ]
+        path = Path(self.tempdir.name) / "pool_rrf.jsonl"
+        path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+        index = ContestIndex(path)
+        state = ContestState(session_id="s")
+        state.category = "Shirts"
+        state.add_constraints(["ribbed crew neck"], turn=1)
+        pool = list(range(len(index)))
+        off = replace(
+            PUBLIC,
+            w_dense=0.0,
+            w_field=0.0,
+            w_phrase=0.0,
+            w_lexical=0.0,
+            w_constraint=0.0,
+            w_profile=0.0,
+            w_bm25=0.0,
+            w_uniq=0.0,
+            w_title=0.0,
+            pool_rrf_k=0,
+        )
+        on = replace(off, pool_rrf_k=60)
+        self.assertEqual(index.ids[rank(index, state, off, pool, limit=1)[0]], "HOT")
+        self.assertEqual(index.ids[rank(index, state, on, pool, limit=1)[0]], "TARGET")
+
+    def test_listwise_parse_order_requires_full_permutation(self) -> None:
+        self.assertEqual(parse_order('{"order": [2, 1]}', 2), [1, 0])
+        self.assertIsNone(parse_order('{"order": [1]}', 2))
+        self.assertIsNone(parse_order("not json", 2))
+
+    def test_llm_listwise_reorders_shortlist_and_bad_json_keeps_popularity(self) -> None:
+        rows = [
+            {
+                "parent_asin": "HOT",
+                "title": "Everyday cotton shirt",
+                "features": ["ribbed crew neck"],
+                "description": ["tee"],
+                "categories": ["Shirts"],
+                "details": {"department": "mens"},
+                "store": "HotBrand",
+                "price": 18.0,
+                "average_rating": 4.9,
+                "rating_number": 80,
+            },
+            {
+                "parent_asin": "TARGET",
+                "title": "Quiet cotton shirt",
+                "features": ["ribbed crew neck"],
+                "description": ["tee"],
+                "categories": ["Shirts"],
+                "details": {"department": "mens"},
+                "store": "QuietBrand",
+                "price": 18.0,
+                "average_rating": 4.8,
+                "rating_number": 40,
+            },
+        ]
+        path = Path(self.tempdir.name) / "llm_catalog.jsonl"
+        path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+        cfg = replace(PUBLIC, w_dense=0.0, llm_listwise=True, llm_pool_limit=10)
+        agent = ContestAgent(path, config=cfg)
+        opening = "I'm looking for shirts. A key requirement is: ribbed crew neck."
+
+        def flip(messages: list[dict[str, str]]) -> tuple[str, dict[str, int]]:
+            del messages
+            return '{"order": [2, 1]}', {"prompt_tokens": 12, "completion_tokens": 4, "total_tokens": 16}
+
+        set_completer(flip)
+        agent.reset("s", {})
+        flipped = agent.respond("s", opening, 1, 10)
+        ids = [item["parent_asin"] for item in flipped["recommendations"]]
+        self.assertEqual(ids[:2], ["HOT", "TARGET"])
+        self.assertEqual(flipped["usage"]["prompt_tokens"], 12)
+
+        def broken(messages: list[dict[str, str]]) -> tuple[str, dict[str, int]]:
+            del messages
+            return "not a ranking", {"prompt_tokens": 3, "completion_tokens": 1, "total_tokens": 4}
+
+        set_completer(broken)
+        agent.reset("t", {})
+        kept = agent.respond("t", opening, 1, 10)
+        kept_ids = [item["parent_asin"] for item in kept["recommendations"]]
+        self.assertEqual(kept_ids[:2], ["HOT", "TARGET"])
 
     def test_dense_pop_floor_keeps_eighth_popular_in_top10(self) -> None:
         rows = []

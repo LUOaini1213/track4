@@ -13,15 +13,18 @@ python -m evaluator.local_evaluator --catalog data/catalog.jsonl --dataset data/
 python demo/run_demo.py --session public_0002
 ```
 
-可选 MiniLM：先读本机缓存 `sentence-transformers/all-MiniLM-L6-v2`，没有再从 Hub 下一次。硬池余弦 `w_dense=0.1`（区分项且池 ≤6 时再加 `w_dense_tiny=0.12`）。加载失败则该项为 0。强制只用缓存：`TECHJAM_DENSE_OFFLINE=1`。不需要 API key。
+可选 MiniLM：先读本机缓存 `sentence-transformers/all-MiniLM-L6-v2`，没有再从 Hub 下一次（官方评分若不断网，缺缓存会自动下）。硬池余弦 `w_dense=0.1`（区分项且池 ≤6 时再加 `w_dense_tiny=0.12`）。加载失败则该项为 0。强制只用缓存：`TECHJAM_DENSE_OFFLINE=1`。
+
+可选 listwise LLM（默认关）：只在已经决定出表、短名单 ≤10 时重排，不改 `ask_attribute`（仍永远问 `other`）。密钥 `SHOPPING_AGENT_DEEPSEEK_API_KEY` 或桌面 `.env`；超时/坏 JSON 退回当前排序。打开：`ContestConfig(llm_listwise=True)` 或临时 `replace(PUBLIC, llm_listwise=True)`。没有 holdout > 0.8981 的证据前不进 PUBLIC。
 
 ## 模型、token、成本、延迟
 
 | 组件 | 默认 | 成本 | 断网 |
 |---|---|---|---|
 | 类目锁 + 逐字 AND + 热度 | 标准库内存索引 | $0 | 是 |
-| MiniLM（可选） | 缓存优先，缺则 Hub | $0 | 有缓存即可；`TECHJAM_DENSE_OFFLINE=1` 禁止下载 |
-| DeepSeek / Qwen | 不计分默认关 | — | 不依赖 |
+| MiniLM（可选） | 缓存优先，缺则 Hub | $0 | 官方不断网则可现下；`TECHJAM_DENSE_OFFLINE=1` 禁止下载 |
+| Listwise LLM | 默认关；出表短名单才调 | 按 token | 超时/无密钥退回 0-token 排序 |
+| DeepSeek / Qwen 问句 | 不计分 | — | 不要改 `ask_attribute` |
 
 公开 200 次评估：`usage` **0 token**。本机 Windows、catalog 5 万条：索引约 8s，200 会话约 35s（约 0.2s/会话，含可选 MiniLM）。无 MiniLM 时会话循环更快，分数接近无 dense 的公开 ~0.950。
 

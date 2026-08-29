@@ -395,6 +395,22 @@ def rank(
             score += config.w_profile * (sum(1 for tag in tags if tag and tag in blob) / len(tags))
         scored.append((score, index.ids[idx], idx))
     scored.sort(key=lambda item: (-item[0], item[1]))
+    if config.pool_rrf_k > 0 and len(pool) >= 2:
+        rrf_field = field_map if apply_field else (
+            field_match_scores(index, pool, slots) if slots else {}
+        )
+        rrf_phrase = phrase_map if apply_phrase else (
+            phrase_title_scores(index, pool, slots) if slots else {}
+        )
+        scored = apply_pool_rrf(
+            scored,
+            index,
+            pool,
+            rrf_k=config.pool_rrf_k,
+            field_map=rrf_field,
+            phrase_map=rrf_phrase,
+            dense_map=dense_map,
+        )
     if skip_dense:
         # Lexical noise can still drop a pop-rank-8 generic target; lock the
         # popularity head when MiniLM was skipped for catalog chrome.
@@ -695,6 +711,80 @@ def apply_pop_floor(
     head = [item for item in rows if item[2] in protected]
     tail = [item for item in rows if item[2] not in protected]
     return head + tail
+
+
+def _rank_list(
+    pool: Sequence[int],
+    score_of,
+    ids: Sequence[str],
+) -> list[int]:
+    return sorted(pool, key=lambda idx: (-float(score_of(idx)), ids[idx]))
+
+
+def _rrf_maps_useful(raw: Mapping[int, float]) -> bool:
+    if not raw or len(raw) < 2:
+        return False
+    values = list(raw.values())
+    return max(values) - min(values) >= 1e-9
+
+
+def apply_pool_rrf(
+    scored: Sequence[tuple[float, str, int]],
+    index: ContestIndex,
+    pool: Sequence[int],
+    *,
+    rrf_k: int,
+    field_map: Mapping[int, float] | None = None,
+    phrase_map: Mapping[int, float] | None = None,
+    dense_map: Mapping[int, float] | None = None,
+) -> list[tuple[float, str, int]]:
+    """RRF over same-pool rank lists. Does not union extra catalog IDs."""
+
+    if rrf_k <= 0 or len(pool) < 2:
+        return list(scored)
+    by_idx = {item[2]: item for item in scored}
+    ids = index.ids
+    lists: list[list[int]] = [
+        _rank_list(pool, index.popularity, ids),
+    ]
+    if _rrf_maps_useful(field_map or {}):
+        lists.append(_rank_list(pool, lambda idx: (field_map or {}).get(idx, 0.0), ids))
+    if _rrf_maps_useful(phrase_map or {}):
+        lists.append(_rank_list(pool, lambda idx: (phrase_map or {}).get(idx, 0.0), ids))
+    if _rrf_maps_useful(dense_map or {}):
+        lists.append(_rank_list(pool, lambda idx: (dense_map or {}).get(idx, 0.0), ids))
+    if len(lists) < 2:
+        return list(scored)
+    rrf: dict[int, float] = {idx: 0.0 for idx in pool}
+    for ranking in lists:
+        for rank_pos, idx in enumerate(ranking, 1):
+            rrf[idx] += 1.0 / (rrf_k + rank_pos)
+    ordered = sorted(pool, key=lambda idx: (-rrf[idx], ids[idx]))
+    return [by_idx[idx] for idx in ordered if idx in by_idx]
+
+
+def rrf_blend_ranks(
+    base: Sequence[int],
+    other: Sequence[int],
+    *,
+    rrf_k: int = 60,
+    ids: Sequence[str] | None = None,
+) -> list[int]:
+    """Blend two permutations of the same IDs with RRF. Keep all base items."""
+
+    if len(base) < 2 or len(other) != len(base) or rrf_k <= 0:
+        return list(base)
+    if set(base) != set(other):
+        return list(base)
+    br = {idx: rank for rank, idx in enumerate(base, 1)}
+    lr = {idx: rank for rank, idx in enumerate(other, 1)}
+
+    def key(idx: int) -> tuple[float, str]:
+        score = 1.0 / (rrf_k + br[idx]) + 1.0 / (rrf_k + lr[idx])
+        name = ids[idx] if ids is not None and idx < len(ids) else str(idx)
+        return (-score, name)
+
+    return sorted(base, key=key)
 
 
 def merge_pop_dense_rrf(
