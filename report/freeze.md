@@ -11,7 +11,7 @@ E123 不再当实验版。只在 **正确性 bug** 或 **真正新的信息源**
 | 停问策略 | `progress_defer="e123"`（一次性 other，不是问到四槽） |
 | 排序 | **未改** `rank()`：热度 1.0 + 精确行 0.35 + 短语 0.15 + MiniLM 0.1 |
 | LLM | `llm_listwise=False`，0 token |
-| Commit SHA | 见同目录提交后回填；以 `git rev-parse contest/public` 为准 |
+| Commit SHA | `3a31aceb969a0697511e254f7273f8b57cb40fce`（`contest/public`） |
 
 ## 冠军数字
 
