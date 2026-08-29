@@ -1,0 +1,42 @@
+{
+  "encoder_available": false,
+  "progress_defer": "e123",
+  "public": {
+    "name": "public_nodense",
+    "hit_rate_at_10": 1.0,
+    "mrr": 0.961131,
+    "mttc": 2.75,
+    "efficiency": 0.825,
+    "recommended_technical_score": 0.953339,
+    "rank1": 187,
+    "misses": [],
+    "tokens": {
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0
+    },
+    "seconds": 18.43
+  },
+  "holdout": {
+    "name": "holdout_nodense",
+    "hit_rate_at_10": 0.975,
+    "mrr": 0.868429,
+    "mttc": 2.925,
+    "efficiency": 0.8075,
+    "recommended_technical_score": 0.909529,
+    "rank1": 162,
+    "misses": [
+      "holdout_0005",
+      "holdout_0052",
+      "holdout_0090",
+      "holdout_0135",
+      "holdout_0183"
+    ],
+    "tokens": {
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0
+    },
+    "seconds": 19.83
+  }
+}

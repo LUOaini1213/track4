@@ -1,0 +1,285 @@
+{
+  "note": "A = ambiguity_defer=a, progress_defer off. e123 = current PUBLIC. 8x100 ID-disjoint from public.",
+  "e123_wins": 8,
+  "shards": 8,
+  "pooled_mean_of_shards": {
+    "A": {
+      "hit": 0.97375,
+      "mrr": 0.84391,
+      "mttc": 2.71,
+      "score": 0.905848,
+      "rank1": 612
+    },
+    "e123": {
+      "hit": 0.97375,
+      "mrr": 0.888018,
+      "mttc": 2.8975,
+      "score": 0.91533,
+      "rank1": 672
+    }
+  },
+  "rows": [
+    {
+      "shard": 0,
+      "n": 100,
+      "A": {
+        "hit": 0.96,
+        "mrr": 0.825452,
+        "mttc": 2.85,
+        "score": 0.890636,
+        "rank1": 74,
+        "misses": [
+          "rand800_0026",
+          "rand800_0042",
+          "rand800_0043",
+          "rand800_0068"
+        ]
+      },
+      "e123": {
+        "hit": 0.96,
+        "mrr": 0.872619,
+        "mttc": 3.06,
+        "score": 0.900586,
+        "rank1": 82,
+        "misses": [
+          "rand800_0026",
+          "rand800_0042",
+          "rand800_0043",
+          "rand800_0068"
+        ]
+      },
+      "seconds": 35.81,
+      "delta_score": 0.00995,
+      "delta_mrr": 0.047167,
+      "delta_mttc": 0.21,
+      "delta_hit": 0.0,
+      "e123_wins": true
+    },
+    {
+      "shard": 1,
+      "n": 100,
+      "A": {
+        "hit": 1.0,
+        "mrr": 0.88875,
+        "mttc": 2.5,
+        "score": 0.936625,
+        "rank1": 81,
+        "misses": []
+      },
+      "e123": {
+        "hit": 1.0,
+        "mrr": 0.917083,
+        "mttc": 2.73,
+        "score": 0.940525,
+        "rank1": 86,
+        "misses": []
+      },
+      "seconds": 29.14,
+      "delta_score": 0.0039,
+      "delta_mrr": 0.028333,
+      "delta_mttc": 0.23,
+      "delta_hit": 0.0,
+      "e123_wins": true
+    },
+    {
+      "shard": 2,
+      "n": 100,
+      "A": {
+        "hit": 0.94,
+        "mrr": 0.814528,
+        "mttc": 2.92,
+        "score": 0.875958,
+        "rank1": 74,
+        "misses": [
+          "rand800_0215",
+          "rand800_0220",
+          "rand800_0262",
+          "rand800_0280",
+          "rand800_0296",
+          "rand800_0298"
+        ]
+      },
+      "e123": {
+        "hit": 0.94,
+        "mrr": 0.874111,
+        "mttc": 3.11,
+        "score": 0.890033,
+        "rank1": 84,
+        "misses": [
+          "rand800_0215",
+          "rand800_0220",
+          "rand800_0262",
+          "rand800_0280",
+          "rand800_0296",
+          "rand800_0298"
+        ]
+      },
+      "seconds": 27.79,
+      "delta_score": 0.014075,
+      "delta_mrr": 0.059583,
+      "delta_mttc": 0.19,
+      "delta_hit": 0.0,
+      "e123_wins": true
+    },
+    {
+      "shard": 3,
+      "n": 100,
+      "A": {
+        "hit": 0.96,
+        "mrr": 0.830722,
+        "mttc": 2.9,
+        "score": 0.891217,
+        "rank1": 76,
+        "misses": [
+          "rand800_0321",
+          "rand800_0328",
+          "rand800_0362",
+          "rand800_0387"
+        ]
+      },
+      "e123": {
+        "hit": 0.96,
+        "mrr": 0.864889,
+        "mttc": 3.02,
+        "score": 0.899067,
+        "rank1": 82,
+        "misses": [
+          "rand800_0321",
+          "rand800_0328",
+          "rand800_0362",
+          "rand800_0387"
+        ]
+      },
+      "seconds": 33.49,
+      "delta_score": 0.00785,
+      "delta_mrr": 0.034167,
+      "delta_mttc": 0.12,
+      "delta_hit": 0.0,
+      "e123_wins": true
+    },
+    {
+      "shard": 4,
+      "n": 100,
+      "A": {
+        "hit": 0.97,
+        "mrr": 0.842278,
+        "mttc": 2.74,
+        "score": 0.902883,
+        "rank1": 76,
+        "misses": [
+          "rand800_0447",
+          "rand800_0469",
+          "rand800_0475"
+        ]
+      },
+      "e123": {
+        "hit": 0.97,
+        "mrr": 0.907,
+        "mttc": 2.96,
+        "score": 0.9179,
+        "rank1": 87,
+        "misses": [
+          "rand800_0447",
+          "rand800_0469",
+          "rand800_0475"
+        ]
+      },
+      "seconds": 19.38,
+      "delta_score": 0.015017,
+      "delta_mrr": 0.064722,
+      "delta_mttc": 0.22,
+      "delta_hit": 0.0,
+      "e123_wins": true
+    },
+    {
+      "shard": 5,
+      "n": 100,
+      "A": {
+        "hit": 0.99,
+        "mrr": 0.860611,
+        "mttc": 2.58,
+        "score": 0.921583,
+        "rank1": 79,
+        "misses": [
+          "rand800_0549"
+        ]
+      },
+      "e123": {
+        "hit": 0.99,
+        "mrr": 0.908667,
+        "mttc": 2.81,
+        "score": 0.9314,
+        "rank1": 86,
+        "misses": [
+          "rand800_0549"
+        ]
+      },
+      "seconds": 17.97,
+      "delta_score": 0.009817,
+      "delta_mrr": 0.048056,
+      "delta_mttc": 0.23,
+      "delta_hit": 0.0,
+      "e123_wins": true
+    },
+    {
+      "shard": 6,
+      "n": 100,
+      "A": {
+        "hit": 1.0,
+        "mrr": 0.847583,
+        "mttc": 2.56,
+        "score": 0.923075,
+        "rank1": 75,
+        "misses": []
+      },
+      "e123": {
+        "hit": 1.0,
+        "mrr": 0.890083,
+        "mttc": 2.7,
+        "score": 0.933025,
+        "rank1": 83,
+        "misses": []
+      },
+      "seconds": 31.41,
+      "delta_score": 0.00995,
+      "delta_mrr": 0.0425,
+      "delta_mttc": 0.14,
+      "delta_hit": 0.0,
+      "e123_wins": true
+    },
+    {
+      "shard": 7,
+      "n": 100,
+      "A": {
+        "hit": 0.97,
+        "mrr": 0.841357,
+        "mttc": 2.63,
+        "score": 0.904807,
+        "rank1": 77,
+        "misses": [
+          "rand800_0708",
+          "rand800_0748",
+          "rand800_0792"
+        ]
+      },
+      "e123": {
+        "hit": 0.97,
+        "mrr": 0.86969,
+        "mttc": 2.79,
+        "score": 0.910107,
+        "rank1": 82,
+        "misses": [
+          "rand800_0708",
+          "rand800_0748",
+          "rand800_0792"
+        ]
+      },
+      "seconds": 23.65,
+      "delta_score": 0.0053,
+      "delta_mrr": 0.028333,
+      "delta_mttc": 0.16,
+      "delta_hit": 0.0,
+      "e123_wins": true
+    }
+  ]
+}

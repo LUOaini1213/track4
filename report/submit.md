@@ -1,6 +1,6 @@
 # 提交说明（ContestAgent PUBLIC）
 
-官方要：可复现的 `Agent`、短报告、延迟 / token / 成本、一场多轮演示。计分入口是 `starter.agent.Agent`（ContestAgent + `PUBLIC`）。
+官方要：可复现的 `Agent`、短报告、延迟 / token / 成本、一场多轮演示。计分入口是 `starter.agent.Agent`（ContestAgent + `PUBLIC`，`progress_defer="e123"`）。冻结说明见 `report/freeze.md`。
 
 ## 怎么跑
 
@@ -15,7 +15,7 @@ python demo/run_demo.py --session public_0002
 
 可选 MiniLM：先读本机缓存 `sentence-transformers/all-MiniLM-L6-v2`，没有再从 Hub 下一次（官方评分若不断网，缺缓存会自动下）。硬池余弦 `w_dense=0.1`（区分项且池 ≤6 时再加 `w_dense_tiny=0.12`）。加载失败则该项为 0。强制只用缓存：`TECHJAM_DENSE_OFFLINE=1`。
 
-可选 listwise LLM（默认关）：只在已经决定出表、短名单 ≤10 时重排，不改 `ask_attribute`（仍永远问 `other`）。密钥 `SHOPPING_AGENT_DEEPSEEK_API_KEY` 或桌面 `.env`；超时/坏 JSON 退回当前排序。打开：`ContestConfig(llm_listwise=True)` 或临时 `replace(PUBLIC, llm_listwise=True)`。没有 holdout > 0.8981 的证据前不进 PUBLIC。
+可选 listwise LLM（默认关）：只在已经决定出表、短名单 ≤10 时重排，不改 `ask_attribute`（仍永远问 `other`）。密钥 `SHOPPING_AGENT_DEEPSEEK_API_KEY` 或桌面 `.env`；超时/坏 JSON 退回当前排序。打开：`ContestConfig(llm_listwise=True)` 或临时 `replace(PUBLIC, llm_listwise=True)`。没有 holdout > 0.911753 的证据前不进 PUBLIC。
 
 ## 模型、token、成本、延迟
 

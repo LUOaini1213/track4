@@ -15,7 +15,13 @@ from starter.shopping_agent.contest_rerank import PoolReranker, set_reranker
 from starter.shopping_agent.contest_dialogue import parse_opening, parse_reply
 from starter.shopping_agent.contest_index import ContestIndex
 from starter.shopping_agent.contest_response import guard_response
-from starter.shopping_agent.contest_rank import conjunction_asins, hard_pool, rank
+from starter.shopping_agent.contest_rank import (
+    conjunction_asins,
+    defer_for_ambiguity,
+    dethrone_allowed,
+    hard_pool,
+    rank,
+)
 from starter.shopping_agent.contest_slots import ContestState
 from starter.shopping_agent.contest_text import constraint_matches, product_search_text
 
@@ -95,6 +101,10 @@ class ContestAgentTests(unittest.TestCase):
         self.assertEqual(agent.config.w_phrase, 0.15)
         self.assertFalse(agent.config.llm_listwise)
         self.assertEqual(agent.config.pool_rrf_k, 0)
+        self.assertFalse(agent.config.hard_selective)
+        self.assertEqual(agent.config.pop_head_guard, "")
+        self.assertEqual(agent.config.ambiguity_defer, "a")
+        self.assertEqual(agent.config.progress_defer, "e123")
 
     def test_opening_templates(self) -> None:
         lookup = {"shirts": "Shirts", "boots": "Boots"}
@@ -217,6 +227,57 @@ class ContestAgentTests(unittest.TestCase):
         state = agent._sessions["s"]
         self.assertEqual(state.intent_snippets()[-1].lower(), "leather")
         self.assertTrue(any(event["kind"] == "referenced_preference_replace" for event in state.intent_log))
+
+    def test_selective_and_applies_narrow_slot_before_disjoint_broad_slot(self) -> None:
+        rows = [
+            {
+                "parent_asin": "HOT1",
+                "title": "Alpha tee 1",
+                "features": ["alpha only phrase"],
+                "description": ["tee"],
+                "categories": ["Shirts"],
+                "details": {"department": "mens"},
+                "store": "A",
+                "price": 18.0,
+                "average_rating": 4.9,
+                "rating_number": 90,
+            },
+            {
+                "parent_asin": "HOT2",
+                "title": "Alpha tee 2",
+                "features": ["alpha only phrase"],
+                "description": ["tee"],
+                "categories": ["Shirts"],
+                "details": {"department": "mens"},
+                "store": "B",
+                "price": 18.0,
+                "average_rating": 4.8,
+                "rating_number": 80,
+            },
+            {
+                "parent_asin": "TARGET",
+                "title": "Beta tee",
+                "features": ["beta discriminator xx"],
+                "description": ["tee"],
+                "categories": ["Shirts"],
+                "details": {"department": "mens"},
+                "store": "C",
+                "price": 18.0,
+                "average_rating": 4.7,
+                "rating_number": 40,
+            },
+        ]
+        path = Path(self.tempdir.name) / "selective_and.jsonl"
+        path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+        index = ContestIndex(path)
+        state = ContestState(session_id="s")
+        state.category = "Shirts"
+        state.add_constraints(["alpha only phrase", "beta discriminator xx"], turn=1)
+        pool = list(range(len(index)))
+        disclosure = hard_pool(index, state, pool, selective=False)
+        selective = hard_pool(index, state, pool, selective=True)
+        self.assertNotIn("TARGET", [index.ids[idx] for idx in disclosure])
+        self.assertEqual([index.ids[idx] for idx in selective], ["TARGET"])
 
     def test_distinctive_early_commit_ranks_small_hard_pool(self) -> None:
         rows = []
@@ -1275,6 +1336,81 @@ class ContestAgentTests(unittest.TestCase):
         self.assertEqual(index.ids[shuffled[0]], "CLONE")
         self.assertEqual(index.ids[locked[0]], "HOT")
 
+    def test_dethrone_allowed_g1_g2_g3_structural(self) -> None:
+        dense_up = {0: 0.0, 1: 1.0}
+        exact = {0: 0.0, 1: 1.0}
+        none = {0: 0.0, 1: 0.0}
+        self.assertFalse(dethrone_allowed("g1", 0, 1, field_map=none, phrase_map=none, dense_map=dense_up))
+        self.assertTrue(dethrone_allowed("g1", 0, 1, field_map=exact, phrase_map=none, dense_map=dense_up))
+        self.assertFalse(dethrone_allowed("g2", 0, 1, field_map=none, phrase_map=none, dense_map=dense_up))
+        self.assertTrue(dethrone_allowed("g2", 0, 1, field_map=exact, phrase_map=none, dense_map=dense_up))
+        self.assertTrue(dethrone_allowed("g2", 0, 1, field_map=none, phrase_map=none, dense_map={0: 1.0, 1: 0.0}))
+        self.assertFalse(dethrone_allowed("g3", 0, 1, field_map={0: 0.0, 1: 0.4}, phrase_map=none, dense_map=dense_up))
+        self.assertTrue(dethrone_allowed("g3", 0, 1, field_map=exact, phrase_map=none, dense_map=dense_up))
+
+    def test_pop_head_g2_blocks_minilm_only_dethrone(self) -> None:
+        rows = [
+            {
+                "parent_asin": "HOT",
+                "title": "Everyday cotton shirt",
+                "features": ["ribbed crew neck"],
+                "description": ["plain tee"],
+                "categories": ["Shirts"],
+                "details": {"department": "mens"},
+                "store": "HotBrand",
+                "price": 18.0,
+                "average_rating": 4.9,
+                "rating_number": 80,
+            },
+            {
+                "parent_asin": "CLONE",
+                "title": "Cotton shirt",
+                "features": ["ribbed crew neck"],
+                "description": ["everyday unique rubber sole comfort"],
+                "categories": ["Shirts"],
+                "details": {"department": "mens"},
+                "store": "QuietBrand",
+                "price": 18.0,
+                "average_rating": 4.8,
+                "rating_number": 40,
+            },
+        ]
+        path = Path(self.tempdir.name) / "pop_head_g2.jsonl"
+        path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+        index = ContestIndex(path)
+        state = ContestState(session_id="s")
+        state.category = "Shirts"
+        state.add_constraints(["ribbed crew neck"], turn=1)
+        pool = list(range(len(index)))
+
+        def encode(texts: list[str]) -> list[list[float]]:
+            vectors = []
+            for text in texts:
+                lowered = text.lower()
+                if "plain tee" in lowered:
+                    vectors.append([0.0, 1.0])
+                else:
+                    vectors.append([1.0, 0.0])
+            return vectors
+
+        set_encoder(PoolDenseEncoder(encode=encode))
+        off = replace(
+            PUBLIC,
+            w_dense=0.8,
+            w_dense_tiny=0.5,
+            dense_tiny_cap=6,
+            w_lexical=0.0,
+            w_constraint=0.0,
+            w_profile=0.0,
+            w_field=0.25,
+            dense_skip_generic=True,
+            dense_skip_field_flat=False,
+            pop_head_guard="",
+        )
+        self.assertEqual(index.ids[rank(index, state, off, pool, limit=1)[0]], "CLONE")
+        guarded = replace(off, pop_head_guard="g2")
+        self.assertEqual(index.ids[rank(index, state, guarded, pool, limit=1)[0]], "HOT")
+
     def test_hard_pool_distinctive_title_phrase_outranks_hotter_blob_clone(self) -> None:
         rows = [
             {
@@ -1422,7 +1558,14 @@ class ContestAgentTests(unittest.TestCase):
         ]
         path = Path(self.tempdir.name) / "llm_catalog.jsonl"
         path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
-        cfg = replace(PUBLIC, w_dense=0.0, llm_listwise=True, llm_pool_limit=10)
+        cfg = replace(
+            PUBLIC,
+            w_dense=0.0,
+            llm_listwise=True,
+            llm_pool_limit=10,
+            progress_defer="",
+            ambiguity_defer="",
+        )
         agent = ContestAgent(path, config=cfg)
         opening = "I'm looking for shirts. A key requirement is: ribbed crew neck."
 
@@ -1618,6 +1761,188 @@ class ContestAgentTests(unittest.TestCase):
         ids = [item["parent_asin"] for item in blow_second["recommendations"]]
         self.assertGreaterEqual(len(ids), 1)
         self.assertEqual(ids[0], "P0")
+
+    def test_ambiguity_defer_blocks_min_slots_only_when_evidence_is_flat(self) -> None:
+        def write(rows: list[dict], name: str) -> Path:
+            path = Path(self.tempdir.name) / name
+            path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+            return path
+
+        def clone(idx: int, **extra: object) -> dict:
+            row = {
+                "parent_asin": f"P{idx}",
+                "title": extra.pop("title", f"Everyday layer {idx}"),
+                "features": extra.pop("features", ["soft cotton jersey"]),
+                "description": ["cotton. pull on closure. machine wash."],
+                "categories": ["Shirts"],
+                "details": {"department": "unisex"},
+                "store": f"Store{idx}",
+                "price": 20.0,
+                "average_rating": 4.0,
+                "rating_number": extra.pop("rating_number", 40),
+            }
+            row.update(extra)
+            return row
+
+        opening = "I'm looking for shirts. A key requirement is: cotton."
+        follow = "For that, what matters is: pull on closure; machine wash."
+        fourth = "For that, what matters is: imported."
+        base = ContestConfig(
+            gate_size=5,
+            hard_filter=True,
+            gate_before_override=True,
+            pad_to_top_k=False,
+            min_slots_to_recommend=3,
+            evidence_pool_cap=20,
+            dump_slots=4,
+            dump_pool_cap=20,
+            w_field=0.35,
+            w_phrase=0.15,
+        )
+
+        def second_turn(rows: list[dict], name: str, mode: str) -> dict:
+            agent = ContestAgent(write(rows, name), config=replace(base, ambiguity_defer=mode))
+            agent.reset("s", {})
+            agent.respond("s", opening, 1, 10)
+            return agent.respond("s", follow, 2, 10)
+
+        flat = [clone(idx) for idx in range(8)]
+        deferred = second_turn(flat, "amb_flat.jsonl", "a")
+        self.assertEqual(deferred["recommendations"], [])
+        self.assertEqual(deferred["ask_attribute"], "other")
+        off = second_turn(flat, "amb_off.jsonl", "")
+        self.assertGreaterEqual(len(off["recommendations"]), 1)
+
+        discriminated = [clone(idx) for idx in range(7)]
+        discriminated.append(clone(7, features=["pull on closure"]))
+        opened = second_turn(discriminated, "amb_field.jsonl", "a")
+        self.assertGreaterEqual(len(opened["recommendations"]), 1)
+
+        tiny = [clone(idx) for idx in range(5)]
+        gated = second_turn(tiny, "amb_gate.jsonl", "a")
+        self.assertGreaterEqual(len(gated["recommendations"]), 1)
+
+        dump_agent = ContestAgent(
+            write([clone(idx) for idx in range(8)], "amb_dump.jsonl"),
+            config=replace(base, ambiguity_defer="a"),
+        )
+        dump_agent.reset("s", {})
+        dump_agent.respond("s", opening, 1, 10)
+        dump_agent.respond("s", follow, 2, 10)
+        dumped = dump_agent.respond("s", fourth, 3, 10)
+        self.assertGreaterEqual(len(dumped["recommendations"]), 1)
+
+        phrase_hit = [clone(idx) for idx in range(7)]
+        phrase_hit.append(clone(7, title="Pull on closure everyday layer"))
+        self.assertEqual(second_turn(phrase_hit, "amb_a_phrase.jsonl", "a")["recommendations"], [])
+        self.assertGreaterEqual(
+            len(second_turn(phrase_hit, "amb_b_phrase.jsonl", "b")["recommendations"]),
+            1,
+        )
+
+        blowout = [clone(idx, rating_number=12) for idx in range(1, 8)]
+        blowout.insert(0, clone(0, rating_number=20000))
+        self.assertEqual(second_turn(blowout, "amb_b_gap.jsonl", "b")["recommendations"], [])
+        self.assertGreaterEqual(
+            len(second_turn(blowout, "amb_c_gap.jsonl", "c")["recommendations"]),
+            1,
+        )
+
+        disjoint = [
+            clone(idx, title=("Alpha running shoe" if idx == 0 else "Beta hiking boot"))
+            for idx in range(8)
+        ]
+        self.assertEqual(second_turn(disjoint, "amb_b_title.jsonl", "b")["recommendations"], [])
+        self.assertGreaterEqual(
+            len(second_turn(disjoint, "amb_d_title.jsonl", "d")["recommendations"]),
+            1,
+        )
+
+        index = ContestIndex(write(flat, "amb_fn.jsonl"))
+        state = ContestState(session_id="s")
+        state.category = "Shirts"
+        state.add_constraints(["cotton", "pull on closure", "machine wash"], turn=1)
+        self.assertTrue(
+            defer_for_ambiguity(index, state, replace(base, ambiguity_defer="a"), list(range(8)))
+        )
+        self.assertFalse(defer_for_ambiguity(index, state, base, list(range(8))))
+
+    def test_progress_defer_e1_e2_e3_one_shot_by_scenario(self) -> None:
+        def write(n: int, name: str, *, match: int | None = None) -> Path:
+            keep = n if match is None else match
+            rows = []
+            for idx in range(n):
+                features = ["cotton", "pull on closure", "machine wash"] if idx < keep else ["cotton"]
+                rows.append(
+                    {
+                        "parent_asin": f"P{idx}",
+                        "title": f"Cotton pullover {idx}",
+                        "features": features,
+                        "description": ["layer"],
+                        "categories": ["Shirts"],
+                        "details": {"department": "unisex"},
+                        "store": f"Store{idx}",
+                        "price": 20.0,
+                        "average_rating": 4.0,
+                        "rating_number": 10 + idx,
+                    }
+                )
+            path = Path(self.tempdir.name) / name
+            path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+            return path
+
+        base = ContestConfig(
+            gate_size=5,
+            hard_filter=True,
+            gate_before_override=True,
+            pad_to_top_k=False,
+            min_slots_to_recommend=3,
+            evidence_pool_cap=20,
+            dump_slots=4,
+            dump_pool_cap=20,
+            ambiguity_defer="",
+        )
+        buy_open = "I'm looking for shirts. A key requirement is: cotton."
+        browse_open = "I'm looking for shirts, but I'm still exploring."
+        two = "For that, what matters is: pull on closure; machine wash."
+
+        off = ContestAgent(write(3, "e1_off.jsonl"), config=base)
+        off.reset("s", {})
+        self.assertGreaterEqual(len(off.respond("s", buy_open, 1, 10)["recommendations"]), 1)
+
+        e1 = ContestAgent(write(3, "e1_on.jsonl"), config=replace(base, progress_defer="e1"))
+        e1.reset("s", {})
+        first = e1.respond("s", buy_open, 1, 10)
+        self.assertEqual(first["recommendations"], [])
+        self.assertEqual(first["ask_attribute"], "other")
+        second = e1.respond("s", two, 2, 10)
+        self.assertGreaterEqual(len(second["recommendations"]), 1)
+
+        browse_off = ContestAgent(write(8, "e2_off.jsonl", match=4), config=base)
+        browse_off.reset("s", {})
+        self.assertEqual(browse_off.respond("s", browse_open, 1, 10)["recommendations"], [])
+        opened = browse_off.respond("s", two, 2, 10)
+        self.assertGreaterEqual(len(opened["recommendations"]), 1)
+
+        e2 = ContestAgent(write(8, "e2_on.jsonl", match=4), config=replace(base, progress_defer="e2"))
+        e2.reset("s", {})
+        self.assertEqual(e2.respond("s", browse_open, 1, 10)["recommendations"], [])
+        held = e2.respond("s", two, 2, 10)
+        self.assertEqual(held["recommendations"], [])
+        self.assertEqual(held["ask_attribute"], "other")
+
+        e3_off = ContestAgent(write(8, "e3_off.jsonl"), config=base)
+        e3_off.reset("s", {})
+        e3_off.respond("s", buy_open, 1, 10)
+        dumped = e3_off.respond("s", two, 2, 10)
+        self.assertGreaterEqual(len(dumped["recommendations"]), 1)
+
+        e3 = ContestAgent(write(8, "e3_on.jsonl"), config=replace(base, progress_defer="e3"))
+        e3.reset("s", {})
+        e3.respond("s", buy_open, 1, 10)
+        blocked = e3.respond("s", two, 2, 10)
+        self.assertEqual(blocked["recommendations"], [])
+        self.assertEqual(blocked["ask_attribute"], "other")
 
     def test_strict_override_gate_skips_dump_until_pool_hits_gate(self) -> None:
         rows = []

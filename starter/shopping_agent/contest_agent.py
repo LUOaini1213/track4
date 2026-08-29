@@ -1,7 +1,7 @@
 """Scored shopping agent: always ask ``other``, verbatim AND, popularity-first.
 
 ``starter.agent.Agent`` subclasses this with ``PUBLIC``. Local numbers:
-public-200 Hit 1.000 / 0.9549; holdout-200 Hit 0.980 / 0.8981. Reports in
+public-200 Hit 1.000 / 0.95125; holdout-200 Hit 0.980 / 0.9118. Reports in
 ``report/``. Override scopes and the response guard are borrowed from the
 group ``main`` pipeline; ranking weights are not.
 """
@@ -16,7 +16,9 @@ from .contest_index import ContestIndex
 from .contest_llm import listwise_rerank
 from .contest_rank import (
     candidate_pool,
+    defer_for_ambiguity,
     defer_for_overlap,
+    defer_for_progress,
     hard_pool,
     pad,
     rank,
@@ -96,11 +98,20 @@ class ContestAgent:
             state.observe(message, CHROME)
 
         pool = candidate_pool(self.index, state, self.config)
-        filtered = hard_pool(self.index, state, pool) if self.config.hard_filter else list(pool)
+        filtered = (
+            hard_pool(self.index, state, pool, selective=self.config.hard_selective)
+            if self.config.hard_filter
+            else list(pool)
+        )
         withhold = should_withhold(state, self.config, len(pool), len(filtered))
         working = filtered if (self.config.hard_filter and filtered) else pool
         if not withhold and defer_for_overlap(self.index, state, self.config, working):
             withhold = True
+        if not withhold and defer_for_ambiguity(self.index, state, self.config, working):
+            withhold = True
+        if not withhold and defer_for_progress(state, self.config, len(working)):
+            withhold = True
+            state.progress_deferred = True
         ranked: list[int] = []
         usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
         if not withhold:

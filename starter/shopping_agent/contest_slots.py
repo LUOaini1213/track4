@@ -63,6 +63,8 @@ class ContestState:
     intent_epoch: int = 0
     last_superseded: list[str] = field(default_factory=list)
     intent_log: list[dict[str, object]] = field(default_factory=list)
+    # One-shot: E1/E2/E3 already spent their extra ``other``.
+    progress_deferred: bool = False
 
     @property
     def active(self) -> list[Slot]:

@@ -15,7 +15,7 @@ python eval_contest.py --only public
 python -m evaluator.local_evaluator
 ```
 
-当前本地分数（0 token）：公开 200 Hit@10 **1.000** / 技术分 **0.9549**；自建 holdout 200 Hit **0.980** / **0.8981**。公开 0.95 **不能**当私有 800 的预测。说明、成本与演示见 `report/README.md`、`report/submit.md`。
+当前本地分数（0 token）：公开 200 Hit@10 **1.000** / 技术分 **0.95125**；自建 holdout 200 Hit **0.980** / **0.9118**。公开 0.95 **不能**当私有 800 的预测。说明、成本与演示见 `report/README.md`、`report/submit.md`。
 
 ```bash
 python demo/run_demo.py --session public_0002   # Intent Override 多轮

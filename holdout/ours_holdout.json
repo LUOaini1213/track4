@@ -1,10 +1,10 @@
 {
   "sample_count": 200,
   "hit_rate_at_10": 0.98,
-  "mrr": 0.804726,
-  "mttc": 2.665,
-  "efficiency": 0.8335,
-  "recommended_technical_score": 0.898118,
+  "mrr": 0.864845,
+  "mttc": 2.885,
+  "efficiency": 0.8115,
+  "recommended_technical_score": 0.911753,
   "reported_token_usage": {
     "prompt_tokens": 0,
     "completion_tokens": 0,
@@ -14,26 +14,26 @@
     "boundary": {
       "sample_count": 10,
       "hit_rate_at_10": 1.0,
-      "mrr": 0.75,
-      "mttc": 3.5
+      "mrr": 0.866667,
+      "mttc": 3.8
     },
     "browsing": {
       "sample_count": 80,
       "hit_rate_at_10": 0.9875,
-      "mrr": 0.84378,
-      "mttc": 2.6
+      "mrr": 0.882321,
+      "mttc": 2.725
     },
     "buying": {
       "sample_count": 80,
       "hit_rate_at_10": 0.9875,
-      "mrr": 0.780536,
-      "mttc": 2.0875
+      "mrr": 0.877292,
+      "mttc": 2.45
     },
     "intent_override": {
       "sample_count": 30,
       "hit_rate_at_10": 0.933333,
-      "mrr": 0.783333,
-      "mttc": 4.1
+      "mrr": 0.784444,
+      "mttc": 4.166667
     }
   },
   "sessions": [
@@ -89,7 +89,7 @@
       "sample_id": "holdout_0007",
       "scenario_type": "browsing",
       "hit": true,
-      "first_hit_turn": 2,
+      "first_hit_turn": 3,
       "best_rank": 1,
       "reciprocal_rank": 1.0
     },
@@ -113,9 +113,9 @@
       "sample_id": "holdout_0010",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 1,
-      "best_rank": 2,
-      "reciprocal_rank": 0.5
+      "first_hit_turn": 2,
+      "best_rank": 1,
+      "reciprocal_rank": 1.0
     },
     {
       "sample_id": "holdout_0011",
@@ -153,7 +153,7 @@
       "sample_id": "holdout_0015",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
+      "first_hit_turn": 3,
       "best_rank": 1,
       "reciprocal_rank": 1.0
     },
@@ -161,9 +161,9 @@
       "sample_id": "holdout_0016",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
-      "best_rank": 4,
-      "reciprocal_rank": 0.25
+      "first_hit_turn": 3,
+      "best_rank": 3,
+      "reciprocal_rank": 0.3333333333333333
     },
     {
       "sample_id": "holdout_0017",
@@ -241,9 +241,9 @@
       "sample_id": "holdout_0026",
       "scenario_type": "intent_override",
       "hit": true,
-      "first_hit_turn": 3,
-      "best_rank": 6,
-      "reciprocal_rank": 0.16666666666666666
+      "first_hit_turn": 4,
+      "best_rank": 5,
+      "reciprocal_rank": 0.2
     },
     {
       "sample_id": "holdout_0027",
@@ -305,7 +305,7 @@
       "sample_id": "holdout_0034",
       "scenario_type": "browsing",
       "hit": true,
-      "first_hit_turn": 2,
+      "first_hit_turn": 3,
       "best_rank": 1,
       "reciprocal_rank": 1.0
     },
@@ -313,9 +313,9 @@
       "sample_id": "holdout_0035",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
-      "best_rank": 10,
-      "reciprocal_rank": 0.1
+      "first_hit_turn": 3,
+      "best_rank": 6,
+      "reciprocal_rank": 0.16666666666666666
     },
     {
       "sample_id": "holdout_0036",
@@ -393,9 +393,9 @@
       "sample_id": "holdout_0045",
       "scenario_type": "boundary",
       "hit": true,
-      "first_hit_turn": 3,
-      "best_rank": 2,
-      "reciprocal_rank": 0.5
+      "first_hit_turn": 4,
+      "best_rank": 1,
+      "reciprocal_rank": 1.0
     },
     {
       "sample_id": "holdout_0046",
@@ -433,7 +433,7 @@
       "sample_id": "holdout_0050",
       "scenario_type": "browsing",
       "hit": true,
-      "first_hit_turn": 2,
+      "first_hit_turn": 3,
       "best_rank": 1,
       "reciprocal_rank": 1.0
     },
@@ -465,9 +465,9 @@
       "sample_id": "holdout_0054",
       "scenario_type": "browsing",
       "hit": true,
-      "first_hit_turn": 2,
-      "best_rank": 4,
-      "reciprocal_rank": 0.25
+      "first_hit_turn": 3,
+      "best_rank": 1,
+      "reciprocal_rank": 1.0
     },
     {
       "sample_id": "holdout_0055",
@@ -505,9 +505,9 @@
       "sample_id": "holdout_0059",
       "scenario_type": "boundary",
       "hit": true,
-      "first_hit_turn": 3,
-      "best_rank": 2,
-      "reciprocal_rank": 0.5
+      "first_hit_turn": 4,
+      "best_rank": 1,
+      "reciprocal_rank": 1.0
     },
     {
       "sample_id": "holdout_0060",
@@ -529,9 +529,9 @@
       "sample_id": "holdout_0062",
       "scenario_type": "browsing",
       "hit": true,
-      "first_hit_turn": 2,
-      "best_rank": 2,
-      "reciprocal_rank": 0.5
+      "first_hit_turn": 3,
+      "best_rank": 1,
+      "reciprocal_rank": 1.0
     },
     {
       "sample_id": "holdout_0063",
@@ -601,7 +601,7 @@
       "sample_id": "holdout_0071",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
+      "first_hit_turn": 3,
       "best_rank": 1,
       "reciprocal_rank": 1.0
     },
@@ -657,9 +657,9 @@
       "sample_id": "holdout_0078",
       "scenario_type": "boundary",
       "hit": true,
-      "first_hit_turn": 3,
-      "best_rank": 3,
-      "reciprocal_rank": 0.3333333333333333
+      "first_hit_turn": 4,
+      "best_rank": 2,
+      "reciprocal_rank": 0.5
     },
     {
       "sample_id": "holdout_0079",
@@ -681,7 +681,7 @@
       "sample_id": "holdout_0081",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 1,
+      "first_hit_turn": 2,
       "best_rank": 1,
       "reciprocal_rank": 1.0
     },
@@ -689,7 +689,7 @@
       "sample_id": "holdout_0082",
       "scenario_type": "browsing",
       "hit": true,
-      "first_hit_turn": 2,
+      "first_hit_turn": 3,
       "best_rank": 1,
       "reciprocal_rank": 1.0
     },
@@ -705,9 +705,9 @@
       "sample_id": "holdout_0084",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
-      "best_rank": 10,
-      "reciprocal_rank": 0.1
+      "first_hit_turn": 3,
+      "best_rank": 1,
+      "reciprocal_rank": 1.0
     },
     {
       "sample_id": "holdout_0085",
@@ -777,9 +777,9 @@
       "sample_id": "holdout_0093",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
-      "best_rank": 2,
-      "reciprocal_rank": 0.5
+      "first_hit_turn": 3,
+      "best_rank": 1,
+      "reciprocal_rank": 1.0
     },
     {
       "sample_id": "holdout_0094",
@@ -833,7 +833,7 @@
       "sample_id": "holdout_0100",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
+      "first_hit_turn": 3,
       "best_rank": 3,
       "reciprocal_rank": 0.3333333333333333
     },
@@ -849,9 +849,9 @@
       "sample_id": "holdout_0102",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
-      "best_rank": 3,
-      "reciprocal_rank": 0.3333333333333333
+      "first_hit_turn": 3,
+      "best_rank": 2,
+      "reciprocal_rank": 0.5
     },
     {
       "sample_id": "holdout_0103",
@@ -873,7 +873,7 @@
       "sample_id": "holdout_0105",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
+      "first_hit_turn": 3,
       "best_rank": 1,
       "reciprocal_rank": 1.0
     },
@@ -897,7 +897,7 @@
       "sample_id": "holdout_0108",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
+      "first_hit_turn": 3,
       "best_rank": 1,
       "reciprocal_rank": 1.0
     },
@@ -913,7 +913,7 @@
       "sample_id": "holdout_0110",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
+      "first_hit_turn": 3,
       "best_rank": 1,
       "reciprocal_rank": 1.0
     },
@@ -929,7 +929,7 @@
       "sample_id": "holdout_0112",
       "scenario_type": "browsing",
       "hit": true,
-      "first_hit_turn": 2,
+      "first_hit_turn": 3,
       "best_rank": 1,
       "reciprocal_rank": 1.0
     },
@@ -937,9 +937,9 @@
       "sample_id": "holdout_0113",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
-      "best_rank": 3,
-      "reciprocal_rank": 0.3333333333333333
+      "first_hit_turn": 3,
+      "best_rank": 1,
+      "reciprocal_rank": 1.0
     },
     {
       "sample_id": "holdout_0114",
@@ -993,9 +993,9 @@
       "sample_id": "holdout_0120",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 1,
-      "best_rank": 3,
-      "reciprocal_rank": 0.3333333333333333
+      "first_hit_turn": 2,
+      "best_rank": 1,
+      "reciprocal_rank": 1.0
     },
     {
       "sample_id": "holdout_0121",
@@ -1017,25 +1017,25 @@
       "sample_id": "holdout_0123",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
-      "best_rank": 2,
-      "reciprocal_rank": 0.5
+      "first_hit_turn": 3,
+      "best_rank": 1,
+      "reciprocal_rank": 1.0
     },
     {
       "sample_id": "holdout_0124",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 1,
-      "best_rank": 2,
-      "reciprocal_rank": 0.5
+      "first_hit_turn": 2,
+      "best_rank": 1,
+      "reciprocal_rank": 1.0
     },
     {
       "sample_id": "holdout_0125",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
-      "best_rank": 2,
-      "reciprocal_rank": 0.5
+      "first_hit_turn": 3,
+      "best_rank": 1,
+      "reciprocal_rank": 1.0
     },
     {
       "sample_id": "holdout_0126",
@@ -1057,17 +1057,17 @@
       "sample_id": "holdout_0128",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
-      "best_rank": 3,
-      "reciprocal_rank": 0.3333333333333333
+      "first_hit_turn": 3,
+      "best_rank": 1,
+      "reciprocal_rank": 1.0
     },
     {
       "sample_id": "holdout_0129",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 1,
-      "best_rank": 3,
-      "reciprocal_rank": 0.3333333333333333
+      "first_hit_turn": 2,
+      "best_rank": 1,
+      "reciprocal_rank": 1.0
     },
     {
       "sample_id": "holdout_0130",
@@ -1161,9 +1161,9 @@
       "sample_id": "holdout_0141",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
-      "best_rank": 1,
-      "reciprocal_rank": 1.0
+      "first_hit_turn": 3,
+      "best_rank": 2,
+      "reciprocal_rank": 0.5
     },
     {
       "sample_id": "holdout_0142",
@@ -1177,7 +1177,7 @@
       "sample_id": "holdout_0143",
       "scenario_type": "intent_override",
       "hit": true,
-      "first_hit_turn": 3,
+      "first_hit_turn": 4,
       "best_rank": 3,
       "reciprocal_rank": 0.3333333333333333
     },
@@ -1201,7 +1201,7 @@
       "sample_id": "holdout_0146",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 1,
+      "first_hit_turn": 2,
       "best_rank": 1,
       "reciprocal_rank": 1.0
     },
@@ -1225,9 +1225,9 @@
       "sample_id": "holdout_0149",
       "scenario_type": "browsing",
       "hit": true,
-      "first_hit_turn": 2,
-      "best_rank": 3,
-      "reciprocal_rank": 0.3333333333333333
+      "first_hit_turn": 3,
+      "best_rank": 1,
+      "reciprocal_rank": 1.0
     },
     {
       "sample_id": "holdout_0150",
@@ -1313,9 +1313,9 @@
       "sample_id": "holdout_0160",
       "scenario_type": "browsing",
       "hit": true,
-      "first_hit_turn": 2,
-      "best_rank": 2,
-      "reciprocal_rank": 0.5
+      "first_hit_turn": 3,
+      "best_rank": 1,
+      "reciprocal_rank": 1.0
     },
     {
       "sample_id": "holdout_0161",
@@ -1369,7 +1369,7 @@
       "sample_id": "holdout_0167",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 1,
+      "first_hit_turn": 2,
       "best_rank": 1,
       "reciprocal_rank": 1.0
     },
@@ -1385,9 +1385,9 @@
       "sample_id": "holdout_0169",
       "scenario_type": "browsing",
       "hit": true,
-      "first_hit_turn": 2,
-      "best_rank": 3,
-      "reciprocal_rank": 0.3333333333333333
+      "first_hit_turn": 3,
+      "best_rank": 1,
+      "reciprocal_rank": 1.0
     },
     {
       "sample_id": "holdout_0170",
@@ -1409,7 +1409,7 @@
       "sample_id": "holdout_0172",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
+      "first_hit_turn": 3,
       "best_rank": 3,
       "reciprocal_rank": 0.3333333333333333
     },
@@ -1417,9 +1417,9 @@
       "sample_id": "holdout_0173",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
-      "best_rank": 6,
-      "reciprocal_rank": 0.16666666666666666
+      "first_hit_turn": 3,
+      "best_rank": 1,
+      "reciprocal_rank": 1.0
     },
     {
       "sample_id": "holdout_0174",
@@ -1465,7 +1465,7 @@
       "sample_id": "holdout_0179",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
+      "first_hit_turn": 3,
       "best_rank": 1,
       "reciprocal_rank": 1.0
     },
@@ -1481,9 +1481,9 @@
       "sample_id": "holdout_0181",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
-      "best_rank": 3,
-      "reciprocal_rank": 0.3333333333333333
+      "first_hit_turn": 3,
+      "best_rank": 1,
+      "reciprocal_rank": 1.0
     },
     {
       "sample_id": "holdout_0182",
@@ -1505,15 +1505,15 @@
       "sample_id": "holdout_0184",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
-      "best_rank": 7,
-      "reciprocal_rank": 0.14285714285714285
+      "first_hit_turn": 3,
+      "best_rank": 2,
+      "reciprocal_rank": 0.5
     },
     {
       "sample_id": "holdout_0185",
       "scenario_type": "buying",
       "hit": true,
-      "first_hit_turn": 2,
+      "first_hit_turn": 3,
       "best_rank": 1,
       "reciprocal_rank": 1.0
     },

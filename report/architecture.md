@@ -3,17 +3,28 @@
 评估器加载的是 `starter.agent.Agent` → `ContestAgent` + `PUBLIC`。组仓库 `main` 上的单 Agent
 检索管线是另一条实现；本分支只吸收它的**状态分档、响应守卫、离线契约**，不吸收 BM25/FTS/标题覆盖。
 
-## 五段（与同学同构，默认权重不同）
+## 五段：Evidence-Aware Conversational Search + VoI Stopping
+
+核心不是「AND + 热度 + MiniLM」，而是 **证据不够就继续问 other，证据够了再 popularity-first 晚融合**。
 
 ```text
-[1] 对话状态     ContestState：槽位、分档 override、口头复述已记意图
-[2] 结构化召回   类目锁 + 逐字 AND（空过滤跳过）。不是 BM25 搜全库
-[3] 门控         gate=5，dump_slots=4，Override 前不出表。字段永远 other
-[4] 硬池多信号   热度 1.0 + 精确行 0.35 + 标题整句 0.15 + MiniLM 0.1（线性）
-                 同池名次 RRF（pool_rrf_k=60）已测：公开 Hit 1.0→0.99，holdout Hit 0.98→0.975，**默认关**
-[5] 二阶段重排   listwise LLM 仅出表且 n≤10，与当前序做 RRF blend，失败回退
-                 PUBLIC 默认关。FlashRank / 整表替换已拒
+User
+ ↓
+[1] Dialogue State          槽位 / 分档 override / scenario
+ ↓
+[2] Exact Evidence AND      类目锁 + 逐字合取（空过滤跳过）
+ ↓
+[3] Evidence / Progress Controller
+      ├ evidence insufficient → ask other（A / E1 / E2 / E3，各一次）
+      └ evidence sufficient   → recommend
+                                   ↓
+[4] popularity-first late fusion   热度 1.0 + 精确行 0.35 + 短语 0.15 + MiniLM 0.1
+[5] 可选 listwise LLM              仅出表 n≤10，默认关
 ```
+
+`pool≤5` 不等于信息充分。Buying 轨迹 `1→+2→+1→exhausted`，Browsing `0→+2→+2→exhausted`。Controller 用 **scenario + 已披露槽数 + 是否已收到 no_additional + 池大小**，不偷看 remain、不改 `rank()`。
+
+消融：RRF / BM25 / LLM reorder / catalog provenance / pop-head guard 都没有稳定过闸。涨分来自多拿真实 intent 槽：holdout **0.8981 → 0.8987（A）→ 0.9118（E123）**。
 
 缺 MiniLM 权重或 LLM 密钥时 [4][5] 该项为 0，[1]–[3] 仍能跑完。这符合 Track 4 范围内的 keyword/dense/hybrid + 会话状态 + 可选 LLM，且不依赖工业向量库或全模型训练。
 
@@ -25,7 +36,7 @@ respond(message, turn, top_k)
   parse_opening / parse_reply
   scoped override → ContestState
   类目锁 → 逐字 AND（空过滤跳过）
-  池大则 withhold，继续问 other
+  VoI stop：池小但卡未耗尽则再问一轮 other；否则出表
   热度 + 精确 feature/details 行 + 可选 MiniLM（泛约束跳过）
   可选 listwise LLM 与当前序 RRF blend
   contest_response.guard_response

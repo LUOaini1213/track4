@@ -7,7 +7,8 @@
 | 文件 | 是什么 |
 |---|---|
 | `holdout_200.jsonl` | ID-holdout 200：80/80/30/10，seed 2026 |
-| `ours_holdout.json` | 当前 PUBLIC 在 holdout 200 上的完整 evaluate（Hit 0.980 / 0.8888） |
+| `ours_holdout.json` | 当前 PUBLIC（e123）在 holdout 200：Hit 0.980 / **0.911753** |
+| `shards/a_vs_e123.json` | 8×100：A vs e123，**8/8 e123 更高** |
 | `holdout_compare.json` | 我们 vs 同学 structured（同学 holdout 当时无 LLM） |
 | `random_800.jsonl` | 320/320/120/40，seed 见生成脚本，与公开 asin 不交 |
 | `random800_compare.json` | 8 路合并：Hit 0.9725 / 0.89989（**旧配置快照**） |

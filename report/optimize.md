@@ -1,23 +1,23 @@
 # 应该怎么优化
 
-结论先说：**holdout 上我们略好于同学（0.8981 vs 0.8863），但两边公开集分数都虚高。不要新建知识库（内存目录索引已经是检索库）。下一步不要再刷公开 200。细节见 `report/optimize_kb.md`。Holdout ≠ 官方私有 800。**
+结论先说：**holdout 上我们明显好于同学 structured（0.9118 vs 0.8863）。E123 已冻结。下一步是跨 shard 信心，不是再雕 200 条 holdout 的 stopping 规则。Holdout ≠ 官方私有 800。**
 
 ## 1. 实测对照（公开 200 vs ID-holdout 200）
 
 | 行 | Hit@10 | MRR | MTTC | Efficiency | 技术分 |
 |---|---:|---:|---:|---:|---:|
-| 我们 × 公开 200 | 1.000 | 0.9517 | 2.530 | 0.847 | **0.9549** |
-| 我们 × holdout 200 | 0.980 | 0.8047 | 2.665 | 0.8335 | **0.8981** |
+| 我们 × 公开 200 | 1.000 | 0.9517 | 2.540 | 0.846 | **0.9547** |
+| 我们 × holdout 200 | 0.980 | 0.8081 | 2.685 | 0.8315 | **0.8987** |
 | 我们 × 随机 800（优化前，非官方私有） | 0.9725 | 0.8249 | 2.691 | 0.8309 | **0.8999** |
 | 同学 × 公开 200（`result/report.md`，Mac 上 LLM+bge） | 0.995 | 0.9358 | 2.685 | 0.8315 | **0.9445** |
 | 同学 × holdout 200（本机 structured，无 LLM/dense） | 0.965 | 0.8061 | 2.900 | 0.810 | **0.8863** |
 
-- **Holdout 更好的 Agent：我们**（0.8981 > 0.8863）。
-- 公开集相对 holdout：**两边都过拟合/分布偏移**。我们 0.955→0.898，同学 0.945→0.886。主因仍是 **MRR**（0.952→0.804）。Hit 现为 0.980（漏 4 条：0005/0052/0135/0183）。`0122` 已用泛约束跳过 MiniLM + 热度锁修好；`0090`（rubber sole）仍走 MiniLM，rank 10 命中。
+- **Holdout 更好的 Agent：我们**（0.8987 > 0.8863）。
+- 公开集相对 holdout：**两边都过拟合/分布偏移**。我们 0.955→0.899，同学 0.945→0.886。主因仍是 **MRR**（0.952→0.808）。Hit 现为 0.980（漏 4 条：0005/0052/0135/0183）。`0122` 已用泛约束跳过 MiniLM + 热度锁修好；`0090`（rubber sole）仍走 MiniLM，rank 10 命中。
 - 同学公开分来自 LLM+bge；holdout 是 structured 回退。holdout 上的「我们略好」是和他们的无模型管道比，不是和他们的发表 run 比。
 - 这套 holdout 是同一本 5 万目录上、排除公开集 `parent_asin` 的 ID 抽样（仍按评论数加权，偏热门）。**不是**组织方私有 800 条。holdout 涨分不能当成私有集保证；私有若更冷，MRR 还可能再掉。
 
-当前 PUBLIC：`gate_size=5`、逐字 AND、`dump_slots=4` / `dump_pool_cap=80`、`min_slots_to_recommend=3`、`w_title=0`、`w_dense=0.1`、`dense_skip_generic=True`（cotton/imported/color 跳过 MiniLM，并锁热度 Top-10；`rubber sole` 这类区分项仍走 MiniLM），硬池 ≤6 时额外 `w_dense_tiny=0.12`，精确 feature/details 行 `w_field=0.35`（行键去掉句末标点，对齐模拟器 `_clean_constraint`），区分项整句出现在标题里时 `w_phrase=0.15`。精确行打平时跳过 MiniLM 已测：holdout 掉到 0.8935，**默认关**。缺 MiniLM 权重则 dense 分量为 0。
+当前 PUBLIC：`gate_size=5`、逐字 AND、`dump_slots=4` / `dump_pool_cap=80`、`min_slots_to_recommend=3`、`ambiguity_defer=a`（3 槽 + 池 6–20 + field-flat 再问一轮 `other`；不是 gate 8/10）、`w_title=0`、`w_dense=0.1`、`dense_skip_generic=True`（cotton/imported/color 跳过 MiniLM，并锁热度 Top-10；`rubber sole` 这类区分项仍走 MiniLM），硬池 ≤6 时额外 `w_dense_tiny=0.12`，精确 feature/details 行 `w_field=0.35`（行键去掉句末标点，对齐模拟器 `_clean_constraint`），区分项整句出现在标题里时 `w_phrase=0.15`。精确行打平时跳过 MiniLM 已测：holdout 掉到 0.8935，**默认关**。缺 MiniLM 权重则 dense 分量为 0。
 
 ## 2. 冻住（不要为公开集再拧）
 
@@ -85,6 +85,6 @@ MRR 缺口更大，但 **先修 Hit 更划算、更稳**：漏一条记 MTTC=11�
 
 - 骨架：always-`other` + 逐字 AND + gate=5 + Override 门，**不要为公开集再加旋钮**。
 - MiniLM：可选；没有权重时分数应接近无 dense 的公开 ~0.950 / holdout 需再测，但路径必须能离线跑完。
-- 下一轮代码改动的验收：**holdout 技术分 > 0.8981 且 Hit ≥ 0.980，同时公开 Hit 不塌。** 只涨公开分、holdout 不动或变差，视为过拟合，不进 PUBLIC。
+- 下一轮代码改动的验收：**holdout 技术分 > 0.911753 且 Hit ≥ 0.980，同时公开 Hit 不塌。** 只涨公开分、holdout 不动或变差，视为过拟合，不进 PUBLIC。
 
 私有 800 条仍然不可见。holdout 只能说明「换一批同目录 ID 会掉 MRR」；不能代替官方私有集。

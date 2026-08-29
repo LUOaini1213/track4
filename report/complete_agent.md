@@ -1,15 +1,15 @@
 # 完整 Agent：架构与检索策略
 
-计分入口：`starter.agent.Agent` → `ContestAgent` + `PUBLIC`。公开 200 Hit@10 **1.000** / 技术分 **0.9549**；holdout 200 Hit **0.980** / **0.8981**。第五段 LLM 默认关，0 token。
+计分入口：`starter.agent.Agent` → `ContestAgent` + `PUBLIC`。公开 200 Hit@10 **1.000** / 技术分 **0.95125**；holdout 200 Hit **0.980** / **0.9118**。第五段 LLM 默认关，0 token。
 
 ## 五段流水线
 
 ```text
-[1] 对话状态     解析模板，更新类目 / 槽位 / 分档 override，口头复述已记意图
-[2] 结构化召回   类目锁 + 已披露槽逐字 AND（空过滤跳过）。不是 BM25/向量搜全库
-[3] 门控         硬池 > gate=5 则不出表，继续问 other；dump_slots=4 吃掉卡面耗尽的一轮
-[4] 多信号排序   热度 1.0 + 精确 feature/details 行 0.35 + 标题整句 0.15 + MiniLM 0.1（线性）
-[5] 可选重排     仅已出表且 n≤10 时 listwise LLM，与当前序 RRF blend；失败回退
+User → Dialogue State → Exact AND → Candidate Pool
+                              ↓
+              Evidence / Progress Controller
+                ├ insufficient → ask other
+                └ sufficient   → popularity-first late fusion
 ```
 
 这和对话搜索的常见拆法对应：用历史改写当前查询、检索阶段多信号、不确定时先澄清。和通用 RAG 的差别是 **[2] 必须逐字合取目标自己的卡槽**——模拟器从冻结目录的 features/details 抄约束，BM25 搜全库会把 Hit 交给词面运气。
@@ -32,7 +32,7 @@ Score(d) = Σ_r  1 / (k + rank(r, d))
 
 | 配置 | 公开 Hit | 公开分 | holdout Hit | holdout 分 |
 |---|---:|---:|---:|---:|
-| PUBLIC 线性（热度为主） | **1.000** | 0.9549 | **0.980** | 0.8981 |
+| PUBLIC（e123 VoI stop） | **1.000** | 0.9513 | **0.980** | 0.9118 |
 | 同池 RRF k=60 | 0.990（漏 0083、0087） | 0.9328 | 0.975 | 0.8902 |
 
 精确行在若干会话上压过热度头，把原来 Top-10 里的目标挤出去。先前 **pop∪dense 并集 RRF**（`dense_rrf_k=10`）holdout Hit 0.97，同样拒。结论：尺度无关的 RRF 在论文的混合检索上常见，但这里合取后热度必须压住克隆；线性「热度 1.0 + 精确行 0.35」更稳。`pool_rrf_k=0`。
@@ -53,16 +53,28 @@ Score(d) = Σ_r  1 / (k + rank(r, d))
 
 ## 学习排序（LambdaMART）
 
-LambdaMART 要用标注学特征权重。规格写明 **Out of scope: full-model training**；本地只有公开 200 会话，拟合权重会过拟合公开热门 5-core。不做。特征互补靠人工闸：holdout > 0.8981 且 Hit≥0.980、公开 Hit=1.0 才改 PUBLIC。
+LambdaMART 要用标注学特征权重。规格写明 **Out of scope: full-model training**；本地只有公开 200 会话，拟合权重会过拟合公开热门 5-core。不做。特征互补靠人工闸：holdout > 0.911753 且 Hit≥0.980、公开 Hit=1.0 才改 PUBLIC。
 
 ## 门控与澄清
 
-`gate_size=5`：硬池仍大于 5 时只问、不出表。对话检索里意图不清时先澄清，和 D2D 的「重叠过大先问」同类。gate 放到 8–10 时公开分 ≤0.9477，MRR 跌幅大于 Efficiency。`dump_slots=4` 处理卡面 2 hard + 2 soft 问完还等一轮的情况。Override 前不出表（命中不计分）。这些不改。
+`gate_size=5` 不再等于「信息够了」。`ambiguity_defer=a` 拦 field-flat 的 3 槽 shortcut。`progress_defer=e123` 再拦两类 **scenario-aware** 一次性 other：Buying/Browsing 池 ≤5 但槽 <4 且尚未 `no_additional`；以及 3 槽 leftover（池 >5）。E1/E2/E3 单独都过闸，组合 holdout **0.911753** / rank1 162，丢掉 0141。不是问到四槽为止。Override 前不出表。
 
 ## 上下文
 
 `ContestState` 记住类目、槽、override 分档。新消息只更新槽，再走同一条 AND，**不另开检索通道**。查询重写 = 把已披露原文放进合取；绕过 AND 去「补召回」会把目标滤丢。口头 `message` 复述已记意图，字段仍是 `other`。
 
+## Holdout 切片（召回 vs 排序）
+
+200 条：rank1 **162**（e123 从 145 抬上来），miss 仍 4。`progress_defer=e123` 救 0010/0054/0084/0173 等；**0141** Rank1→2 是 Buying 小池再问的税。
+
+四条 miss **都在 hard pool**：pop 17 / 54 / 252 / 23。是热度进不了 Top-10，不是 AND/类目/override 漏召回。不要用排序补丁硬抬。
+
+未进第 1 的 52 条里，target 都在合取池。先前「约 21 条 pop_rank=1 却 official rank>1」混了 **多轮 recommend 时的部分槽** 和 **全卡面热度**。全卡面 `rank()` 上真正的有害 dethrone 只有 **3** 条（0003 / 0100 / 0187），challenger 全是 MiniLM-only、field/phrase 增量都是 0。正收益 promotion 有 **9** 条：7 条有精确行优势（G1/G2/G3 会放行），2 条也是 MiniLM-only（0021 / 0097，guard 会误杀）。
+
+`pop_head_guard` G1/G2/G3 官方闸全失败：公开 0.95465（MRR 0.951667→0.950833），holdout G1/G2 0.897243 / G3 0.896993，rank1 144→142。官方 saved_pop_heads=5 < lost_promotions=7（丢掉 0015、0021、0050、0097、0112、0141、0146）。0050 全卡面 field Δ=+0.5 本该放行，出表时槽还不全，被当成 semantic-only 否决。不是 `dense_pop_floor=10`，也不再加第 17 个排序权重。
+
+`hard_selective`（最能缩池的槽先 AND，空集仍跳过）：全卡面 4 槽上与披露顺序 **池集合完全相同**；公开/holdout 分数与 PUBLIC 相同。原因：目标匹配自己的全部卡槽时，A∩B 非空，跳过空集不会触发，合取与顺序无关。夹具上两个互斥槽仍能证明顺序敏感；真实 intent card 不是那种几何。默认保持披露顺序。
+
 ## 小结
 
-五段都在，后两段可关。同池 RRF、整表 LLM、LambdaMART、放宽 gate、绕过 AND 在本模拟器上没有过闸证据。当前默认：热度主导的线性融合 + MiniLM 晚融合；LLM 短名单 blend 备着。公开 Hit 1.000，holdout Hit 0.980。下一轮仍用 holdout 闸，不把所有信号一次打开。
+五段都在，后两段可关。同池 RRF、整表 LLM、LambdaMART、放宽 gate、绕过 AND、热度榜首 G1/G2/G3、catalog provenance 没有过闸证据。当前默认：热度线性融合 + MiniLM 晚融合 + field-flat 3 槽 defer + **scenario-aware 一次性 other**（e123）。公开 Hit 1.000 / 0.95125，holdout Hit 0.980 / **0.911753**。正式闸：Public Hit=1.000，Holdout Hit≥0.980，Holdout TechnicalScore **> 0.911753**。

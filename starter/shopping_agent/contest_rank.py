@@ -229,14 +229,48 @@ def candidate_pool(index: ContestIndex, state: ContestState, config: ContestConf
     return pool or index.popular(config.global_fallback_limit)
 
 
-def hard_pool(index: ContestIndex, state: ContestState, pool: list[int]) -> list[int]:
+def hard_pool(
+    index: ContestIndex,
+    state: ContestState,
+    pool: list[int],
+    *,
+    selective: bool = False,
+) -> list[int]:
+    """AND disclosed slots. A filter that would empty the pool is skipped.
+
+    Disclosure order is the default. ``selective=True`` repeatedly applies the
+    remaining slot that yields the smallest non-empty pool. Skip-empty is
+    unchanged; order only matters when two slots are disjoint on the current
+    pool.
+    """
+
     narrowed = list(pool)
-    for item in state.active:
-        filtered = [idx for idx in narrowed if hard_match(index, idx, item)]
-        if filtered:
-            narrowed = filtered
-        if len(narrowed) <= 1:
+    pending = list(state.active)
+    if not selective:
+        for item in pending:
+            filtered = [idx for idx in narrowed if hard_match(index, idx, item)]
+            if filtered:
+                narrowed = filtered
+            if len(narrowed) <= 1:
+                break
+        return narrowed
+    while pending and len(narrowed) > 1:
+        best_i = None
+        best_filtered: list[int] | None = None
+        best_n: int | None = None
+        for i, item in enumerate(pending):
+            filtered = [idx for idx in narrowed if hard_match(index, idx, item)]
+            if not filtered:
+                continue
+            n = len(filtered)
+            if best_n is None or n < best_n:
+                best_n = n
+                best_i = i
+                best_filtered = filtered
+        if best_i is None or best_filtered is None:
             break
+        narrowed = best_filtered
+        pending.pop(best_i)
     return narrowed
 
 
@@ -429,7 +463,100 @@ def rank(
             scored = merge_pop_dense_rrf(scored, index, config.dense_rrf_k)
         elif config.dense_pop_floor:
             scored = apply_pop_floor(scored, index, config.dense_pop_floor)
+    if config.pop_head_guard:
+        scored = apply_pop_head_guard(
+            scored,
+            index,
+            config.pop_head_guard,
+            field_map=field_map,
+            phrase_map=phrase_map,
+            dense_map=dense_map,
+        )
     return [idx for _score, _asin, idx in scored[: max(limit, 0)]]
+
+
+_HEAD_EPS = 1e-9
+
+
+def _exact_stronger(
+    challenger: int,
+    leader: int,
+    field_map: Mapping[int, float] | None,
+    phrase_map: Mapping[int, float] | None,
+) -> bool:
+    field_delta = (field_map or {}).get(challenger, 0.0) - (field_map or {}).get(leader, 0.0)
+    phrase_delta = (phrase_map or {}).get(challenger, 0.0) - (phrase_map or {}).get(leader, 0.0)
+    return field_delta > _HEAD_EPS or phrase_delta > _HEAD_EPS
+
+
+def _exact_margin(
+    challenger: int,
+    leader: int,
+    field_map: Mapping[int, float] | None,
+    phrase_map: Mapping[int, float] | None,
+    margin: float = 0.5,
+) -> bool:
+    field_delta = (field_map or {}).get(challenger, 0.0) - (field_map or {}).get(leader, 0.0)
+    phrase_delta = (phrase_map or {}).get(challenger, 0.0) - (phrase_map or {}).get(leader, 0.0)
+    return field_delta >= margin or phrase_delta >= margin
+
+
+def dethrone_allowed(
+    mode: str,
+    leader: int,
+    challenger: int,
+    *,
+    field_map: Mapping[int, float] | None = None,
+    phrase_map: Mapping[int, float] | None = None,
+    dense_map: Mapping[int, float] | None = None,
+) -> bool:
+    """Whether a non-pop-1 item may outrank the popularity leader."""
+
+    exact = _exact_stronger(challenger, leader, field_map, phrase_map)
+    dense_up = (dense_map or {}).get(challenger, 0.0) > (dense_map or {}).get(leader, 0.0) + _HEAD_EPS
+    key = (mode or "").strip().lower()
+    if key in {"g1", "exact"}:
+        return exact
+    if key in {"g2", "semantic"}:
+        if exact:
+            return True
+        if dense_up:
+            return False
+        return True
+    if key in {"g3", "margin"}:
+        return _exact_margin(challenger, leader, field_map, phrase_map)
+    return True
+
+
+def apply_pop_head_guard(
+    scored: Sequence[tuple[float, str, int]],
+    index: ContestIndex,
+    mode: str,
+    *,
+    field_map: Mapping[int, float] | None = None,
+    phrase_map: Mapping[int, float] | None = None,
+    dense_map: Mapping[int, float] | None = None,
+) -> list[tuple[float, str, int]]:
+    """Keep popularity #1 first unless the current winner has a allowed dethrone."""
+
+    rows = list(scored)
+    if not mode or len(rows) < 2:
+        return rows
+    leader = max(rows, key=lambda item: (index.popularity(item[2]), item[1]))
+    winner = rows[0]
+    if winner[2] == leader[2]:
+        return rows
+    if dethrone_allowed(
+        mode,
+        leader[2],
+        winner[2],
+        field_map=field_map,
+        phrase_map=phrase_map,
+        dense_map=dense_map,
+    ):
+        return rows
+    rest = [item for item in rows if item[2] != leader[2]]
+    return [leader, *rest]
 
 
 def popularity_gap(index: ContestIndex, pool: Sequence[int]) -> float:
@@ -911,3 +1038,144 @@ def defer_for_overlap(
     top = sorted(working, key=lambda idx: -index.popularity(idx))[:2]
     gap = index.popularity(top[0]) - index.popularity(top[1])
     return gap < config.overlap_margin
+
+
+def _scores_flat(scores: Mapping[int, float] | None) -> bool:
+    if not scores:
+        return True
+    return max(scores.values()) - min(scores.values()) < _HEAD_EPS
+
+
+def min_slots_shortcut_would_fire(
+    state: ContestState,
+    config: ContestConfig,
+    working_n: int,
+) -> bool:
+    """True when recommend would happen only because of min_slots, not gate/dump."""
+
+    if config.gate_size <= 0 or config.min_slots_to_recommend <= 0:
+        return False
+    if config.strict_override_gate and state.scenario == "intent_override":
+        return False
+    if len(state.active) < config.min_slots_to_recommend:
+        return False
+    if not (0 < working_n <= config.evidence_pool_cap):
+        return False
+    if working_n <= config.gate_size:
+        return False
+    if (
+        config.dump_slots > 0
+        and len(state.active) >= config.dump_slots
+        and working_n <= config.dump_pool_cap
+    ):
+        return False
+    if (
+        config.distinctive_early_cap > 0
+        and distinctive_slot_tokens(state.active)
+        and 0 < working_n <= config.distinctive_early_cap
+    ):
+        return False
+    return True
+
+
+def title_top2_overlap(index: ContestIndex, pool: Sequence[int]) -> float:
+    """Jaccard of distinctive title tokens of the two most popular pool items."""
+
+    if len(pool) < 2:
+        return 0.0
+    skip = _TITLE_SKIP | _DENSE_GENERIC
+    top = sorted(pool, key=lambda idx: (-index.popularity(idx), index.ids[idx]))[:2]
+
+    def bag(idx: int) -> set[str]:
+        return {
+            token
+            for token in terms(index.titles[idx])
+            if token not in skip and len(token) >= 3 and not token.isdigit()
+        }
+
+    left, right = bag(top[0]), bag(top[1])
+    if not left or not right:
+        return 0.0
+    return len(left & right) / len(left | right)
+
+
+def defer_for_ambiguity(
+    index: ContestIndex,
+    state: ContestState,
+    config: ContestConfig,
+    working: Sequence[int],
+) -> bool:
+    """True when the 3-slot shortcut should wait for one more ``other``.
+
+    Uses only the current hard pool. Does not read the intent card or target.
+    """
+
+    key = (config.ambiguity_defer or "").strip().lower()
+    if key not in {"a", "b", "c", "d"}:
+        return False
+    if state.turn >= 9:
+        return False
+    if "other" in state.exhausted:
+        return False
+    if config.gate_before_override and state.scenario == "intent_override" and not state.override_applied:
+        return False
+    if not min_slots_shortcut_would_fire(state, config, len(working)):
+        return False
+    slots = state.active
+    field_map = field_match_scores(index, working, slots) if slots else {}
+    if not _scores_flat(field_map):
+        return False
+    if key == "a":
+        return True
+    phrase_map = phrase_title_scores(index, working, slots) if slots else {}
+    if not _scores_flat(phrase_map):
+        return False
+    if key == "b":
+        return True
+    if key == "c":
+        gap = config.ambiguity_pop_gap if config.ambiguity_pop_gap > 0 else 0.04
+        return popularity_gap(index, working) < gap
+    overlap = config.ambiguity_title_overlap if config.ambiguity_title_overlap > 0 else 0.5
+    return title_top2_overlap(index, working) >= overlap
+
+
+def defer_for_progress(
+    state: ContestState,
+    config: ContestConfig,
+    working_n: int,
+) -> bool:
+    """Withhold one recommend to buy the next ``other`` (card-progress EVI).
+
+    Uses scenario, slot count, pool size, and whether ``other`` already
+    returned no-additional. Does not read remain or the target.
+    """
+
+    key = (config.progress_defer or "").strip().lower()
+    flags = {
+        "e1": {"e1"},
+        "e2": {"e2"},
+        "e3": {"e3"},
+        "e12": {"e1", "e2"},
+        "e13": {"e1", "e3"},
+        "e23": {"e2", "e3"},
+        "e123": {"e1", "e2", "e3"},
+    }.get(key)
+    if not flags:
+        return False
+    if state.progress_deferred:
+        return False
+    if state.turn >= 9:
+        return False
+    if "other" in state.exhausted:
+        return False
+    if config.gate_before_override and state.scenario == "intent_override" and not state.override_applied:
+        return False
+    n_slots = len(state.active)
+    gate = config.gate_size if config.gate_size > 0 else 5
+    if "e1" in flags and state.scenario == "buying" and 1 <= n_slots < 4 and 2 <= working_n <= gate:
+        return True
+    if "e2" in flags and state.scenario == "browsing" and 1 <= n_slots < 4 and 2 <= working_n <= gate:
+        return True
+    if "e3" in flags and n_slots == 3 and working_n > gate:
+        return True
+    return False

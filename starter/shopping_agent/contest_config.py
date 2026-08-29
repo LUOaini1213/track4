@@ -24,6 +24,10 @@ class ContestConfig:
     # Hard AND-filter before gating. If the conjunction empties the pool the
     # agent falls back to the soft pool and does not withhold.
     hard_filter: bool = False
+    # Apply the most selective non-empty constraint first. Empty skip stays.
+    # False keeps disclosure order. Order only matters when some pair of
+    # slots is disjoint on the current pool.
+    hard_selective: bool = False
     # Hits before the override message cannot score; withholding is optional.
     gate_before_override: bool = False
     # After override, ignore min_slots/dump shortcuts and wait for gate_size.
@@ -47,6 +51,18 @@ class ContestConfig:
     # than gate_size) when the popularity gap between the top two working
     # items is below this margin. 0 disables.
     overlap_margin: float = 0.0
+    # Undo the min_slots=3 shortcut only: pool still > gate and current
+    # exact evidence cannot separate clones. "" off; "a" field-flat
+    # (PUBLIC: holdout 0.898718); "b" field+phrase flat; "c" b + small
+    # popularity gap; "d" b + high top-2 title overlap. Does not raise
+    # gate_size and does not touch dump_slots=4. Not overlap_margin.
+    ambiguity_defer: str = ""
+    ambiguity_pop_gap: float = 0.04
+    ambiguity_title_overlap: float = 0.5
+    # Scenario-aware stop/continue. "" off; "e1" buying gate-early;
+    # "e2" browsing gate-early; "e3" 3-slot leftover (pool>5, not
+    # exhausted). One extra other, not until four slots. Not E1|E2|E3.
+    progress_defer: str = ""
     # Closer disclosed budget wins among hard-pool clones. 0 disables.
     w_price: float = 0.0
     # Once this many slots are known, another ``other`` almost always
@@ -66,6 +82,12 @@ class ContestConfig:
     # (reordered by blended score). 0 disables. Floor=10 swapped holdout
     # misses; keep off unless holdout+public both improve.
     dense_pop_floor: int = 0
+    # Protect popularity rank-1 unless a challenger has stronger exact
+    # evidence. "" off; "g1" exact-evidence; "g2" veto MiniLM-only
+    # dethrone; "g3" field/phrase margin >= 0.5. Not dense_pop_floor.
+    # G1/G2: public 0.95465 / holdout 0.897243 rank1 144→142 (gained 5
+    # lost 7). G3: holdout 0.896993. Keep off — not another ranking weight.
+    pop_head_guard: str = ""
     # Union the popularity top-N with the blended top-N, then RRF-sort.
     # Holdout Hit 0.975→0.97; keep off.
     dense_rrf_k: int = 0
@@ -150,6 +172,13 @@ PUBLIC = ContestConfig(
     min_slots_to_recommend=3,
     evidence_pool_cap=20,
     dump_slots=4,
+    # A: 3-slot + pool 6–20 + field-flat → one more other.
+    # public 0.9547 Hit 1.0 / holdout 0.898718 Hit 0.980 rank1 145 (0128 3→1).
+    # B/C/D missed 0128 and only burned MTTC. Not gate 8/10.
+    ambiguity_defer="a",
+    # Frozen champion: E1+E2+E3. Do not add E124-style rules on this holdout.
+    # public Hit 1.0 / 0.95125, holdout 0.911753 Hit 0.980 rank1 162.
+    progress_defer="e123",
     dump_pool_cap=80,
     # Distinctive early-rank cap=10: public 0.953914 (MTTC 2.505) but
     # holdout 0.88453 / MRR 0.758 < 0.8888. Keep off.
@@ -158,6 +187,9 @@ PUBLIC = ContestConfig(
     w_dense=0.1,
     dense_pool_limit=80,
     dense_pop_floor=0,
+    # Pop-head G1/G2/G3: holdout 0.897243 / 0.897243 / 0.896993, all
+    # rank1 142 and saved_pop_heads < lost_promotions. Keep off.
+    pop_head_guard="",
     dense_rrf_k=0,
     # Same-pool rank RRF k=60: public Hit 0.99 / 0.932838, holdout Hit 0.975
     # / 0.890185. Keep off (not the rejected pop∪dense union RRF).
@@ -176,6 +208,9 @@ PUBLIC = ContestConfig(
     # Skip MiniLM on exact-line ties: public 0.955864 / holdout 0.893543
     # rank1 142→139. Keep off.
     dense_skip_field_flat=False,
+    # Most-selective-first AND: public/holdout identical to disclosure
+    # order (0.9549 / 0.898118). Keep disclosure order.
+    hard_selective=False,
     # Hard-pool IDF trial w=0.15: public Hit 1.0 / 0.953414 unchanged;
     # holdout Hit 0.980 / 0.888778 (not strictly > 0.8888). Keep off.
     w_idf=0.0,
@@ -200,7 +235,7 @@ PUBLIC = ContestConfig(
     # holdout 0.898118 Hit 0.980. Promote; skip cotton/color/imported slots.
     w_phrase=0.15,
     phrase_pool_limit=40,
-    # Listwise LLM on recommend shortlists. Keep off until holdout > 0.8981.
+    # Listwise LLM on recommend shortlists. Keep off until holdout > 0.8987.
     llm_listwise=False,
     llm_pool_limit=10,
 )
