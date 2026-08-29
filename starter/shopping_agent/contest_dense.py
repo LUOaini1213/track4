@@ -1,20 +1,60 @@
-"""Optional MiniLM cosine over a short hard-filter pool.
+"""MiniLM cosine over a short hard-filter pool.
 
 Coupled **after** verbatim AND: popularity stays the sort key, cosine is a
-bounded tie-break on pools of size 2..80. Load cache first, then the Hub
-if the process is allowed to use the network. Missing torch/transformers/
-weights, or any encode error, leaves ranking unchanged.
+bounded tie-break on pools of size 2..80.
+
+Load order: ``TECHJAM_DENSE_HOME`` → ``models/all-MiniLM-L6-v2`` sidecar →
+Hugging Face cache → Hub (same pinned revision) if the process may use the
+network. Missing torch/transformers/weights, or any encode error, leaves
+ranking unchanged. That fallback is runnable, not score-equivalent.
 """
 
 from __future__ import annotations
 
 import os
 from collections.abc import Callable, Sequence
+from pathlib import Path
 
 from .contest_index import ContestIndex
 from .contest_slots import ContestState
 
 EncodeFn = Callable[[list[str]], list[list[float]]]
+
+# Same checkpoint that produced Holdout Hit 0.980 / Public 0.95125.
+DEFAULT_HUB_ID = "sentence-transformers/all-MiniLM-L6-v2"
+HUB_REVISION = "c9745ed1d9f207416be6d2e6f8de32d1f16199bf"
+# Hub LFS oid for model.safetensors at HUB_REVISION (90,868,376 bytes).
+WEIGHTS_SHA256 = "53aa51172d142c89d9012cce15ae4d6cc0ca6895895114379cacb4fab128d9db"
+SNAPSHOT_RELATIVE = Path("models") / "all-MiniLM-L6-v2"
+
+
+def repo_root() -> Path:
+    return Path(__file__).resolve().parents[2]
+
+
+def snapshot_dir() -> Path:
+    return repo_root() / SNAPSHOT_RELATIVE
+
+
+def is_transformers_dir(path: Path) -> bool:
+    if not path.is_dir():
+        return False
+    if not (path / "config.json").is_file():
+        return False
+    return (path / "model.safetensors").is_file() or (path / "pytorch_model.bin").is_file()
+
+
+def resolve_model_source() -> str:
+    """Prefer a local snapshot; otherwise the pinned Hub id."""
+    env = (os.environ.get("TECHJAM_DENSE_HOME") or "").strip()
+    if env:
+        candidate = Path(env).expanduser()
+        if is_transformers_dir(candidate):
+            return str(candidate)
+    snap = snapshot_dir()
+    if is_transformers_dir(snap):
+        return str(snap)
+    return DEFAULT_HUB_ID
 
 
 class PoolDenseEncoder:
@@ -22,7 +62,7 @@ class PoolDenseEncoder:
 
     def __init__(
         self,
-        model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
+        model_name: str = DEFAULT_HUB_ID,
         *,
         encode: EncodeFn | None = None,
     ) -> None:
@@ -44,23 +84,34 @@ class PoolDenseEncoder:
         flag = os.environ.get("TECHJAM_DENSE_OFFLINE") or os.environ.get("HF_HUB_OFFLINE")
         return str(flag or "").strip().lower() in {"1", "true", "yes", "on"}
 
+    def _source(self) -> str:
+        if self.model_name != DEFAULT_HUB_ID:
+            return self.model_name
+        return resolve_model_source()
+
+    def _source_is_local_dir(self) -> bool:
+        try:
+            return Path(self._source()).is_dir()
+        except OSError:
+            return False
+
     def _load_transformers(self, local_files_only: bool):
         import torch
         from transformers import AutoModel, AutoTokenizer
 
-        tokenizer = AutoTokenizer.from_pretrained(
-            self.model_name, local_files_only=local_files_only
-        )
-        model = AutoModel.from_pretrained(
-            self.model_name, local_files_only=local_files_only
-        )
+        source = self._source()
+        kwargs: dict[str, object] = {"local_files_only": local_files_only}
+        if not Path(source).is_dir():
+            kwargs["revision"] = HUB_REVISION
+        tokenizer = AutoTokenizer.from_pretrained(source, **kwargs)
+        model = AutoModel.from_pretrained(source, **kwargs)
         model.eval()
         return tokenizer, model, torch
 
     def _ensure(self) -> None:
         if self._ready is not None:
             return
-        attempts = (True,) if self._offline_only() else (True, False)
+        attempts = (True,) if (self._offline_only() or self._source_is_local_dir()) else (True, False)
         for local_only in attempts:
             try:
                 tokenizer, model, torch = self._load_transformers(local_only)

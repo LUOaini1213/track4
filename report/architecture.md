@@ -26,7 +26,7 @@ User
 
 消融：RRF / BM25 / LLM reorder / catalog provenance / pop-head guard 都没有稳定过闸。涨分来自多拿真实 intent 槽：holdout **0.8981 → 0.8987（A）→ 0.9118（E123）**。
 
-缺 MiniLM 权重或 LLM 密钥时 [4][5] 该项为 0，[1]–[3] 仍能跑完。这符合 Track 4 范围内的 keyword/dense/hybrid + 会话状态 + 可选 LLM，且不依赖工业向量库或全模型训练。
+缺 MiniLM 权重或 LLM 密钥时 [4][5] 该项为 0，[1]–[3] 仍能跑完。**能跑 ≠ 分数等价**：无 MiniLM 时 Holdout Hit `0.980→0.975`（掉 `0090`）。VoI stop 不依赖 MiniLM。这符合 Track 4 范围内的 keyword/dense/hybrid + 会话状态 + 可选 LLM，且不依赖工业向量库或全模型训练。加载顺序与官方 Q&A 见 `report/freeze.md`、`models/README.md`。
 
 ## 每轮
 
@@ -52,7 +52,7 @@ respond(message, turn, top_k)
 |---|---|---|
 | Override 分档：referenced / attribute_replace / global_reset | `contest_dialogue.py`、`contest_slots.apply_override` | classmate 式整表 wipe；官方模板仍 decay+AND |
 | 响应合同守卫 | `contest_response.py` | FTS catalog、SQLite |
-| 缺模型权重=0、不隐式下载 | 已有 `contest_dense.py`（`HF_HUB_OFFLINE`） | DeepSeek / Qwen 默认路径 |
+| 缺模型权重=0（分数不等价）；sidecar → 缓存 → 允许时 Hub | `contest_dense.py` + `models/all-MiniLM-L6-v2` | DeepSeek / Qwen 默认路径；不换线上 embedding |
 | 诊断：`intent_scope` / `intent_epoch` / `superseded` | `last_diagnostics` | commit_policy 阈值堆 |
 
 官方模拟器 override 原文是 `Actually, ignore my earlier preference. What I need is: …`，scope 为

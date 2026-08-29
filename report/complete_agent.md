@@ -16,7 +16,7 @@ User → Dialogue State → Exact AND → Candidate Pool
 
 `ask_attribute` **永远是 `other`**。口头可以点名材料/颜色，字段不能改成 `color`/`material`，否则模拟器不泄长 feature 句。
 
-缺 MiniLM 权重或 LLM 密钥时 [4][5] 该项为 0，[1]–[3] 仍能跑完。符合 Track 4：keyword / dense / hybrid、会话状态、可选 LLM；不做工业向量库、不做 full-model training。
+缺 MiniLM 权重或 LLM 密钥时 [4][5] 该项为 0，[1]–[3] 仍能跑完。**能跑 ≠ 分数等价**（Holdout Hit `0.980→0.975`，掉 `0090`）。符合 Track 4：keyword / dense / hybrid、会话状态、可选 LLM；不做工业向量库、不做 full-model training。sidecar 与 pinned revision 见 `models/README.md`。
 
 ## 多信号融合与 RRF
 

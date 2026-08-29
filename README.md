@@ -107,7 +107,7 @@ Only exact `parent_asin` equality produces a hit. Core metrics are also reported
 
 ## Model Choice and Cost
 
-计分默认 **0 token / $0**，不调用 LLM。可选 MiniLM 只读本机缓存，缺权重则 dense=0。延迟与复现见 `report/submit.md`。
+计分默认 **0 token / $0**，不调用 LLM。MiniLM（`all-MiniLM-L6-v2` @ `c9745ed1…`）是冠军分的本地 encoder，不是“可选增强”：有权重 Holdout Hit **0.980**，无权重 **0.975**（掉 `0090`）。加载顺序：`TECHJAM_DENSE_HOME` → `models/all-MiniLM-L6-v2` sidecar → HF 缓存 → 允许联网时 Hub。缺权重 Agent 仍能跑，但 **不是分数等价 fallback**。延迟与复现见 `report/submit.md`、`report/freeze.md`、`models/README.md`。
 
 Teams may use any legally accessible LLM API or local model. Teams manage their own credentials and must never commit API keys. Model choice, estimated cost, token usage, and latency must be disclosed. Token usage is a feasibility metric, not part of the core technical score. The organizer does not provide or reimburse model API credits; teams are responsible for any costs incurred through optional external services.
 

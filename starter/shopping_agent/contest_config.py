@@ -74,8 +74,9 @@ class ContestConfig:
     # disclosed slot has a non-generic token (not cotton/color/imported).
     # Generic-only conjunctions still wait for gate / min_slots.
     distinctive_early_cap: int = 0
-    # MiniLM cosine on the hard pool only. 0 disables; missing weights fall
-    # back to the lexical/popularity score. Keep <=0.1 — classmate w=0.45 hurt.
+    # MiniLM cosine on the hard pool only. 0 disables; missing weights leave
+    # the lexical/popularity score unchanged (runnable, not score-equivalent:
+    # holdout Hit 0.980→0.975, drops 0090). Keep <=0.1 — classmate w=0.45 hurt.
     w_dense: float = 0.0
     dense_pool_limit: int = 80
     # After dense/rerank, keep the popularity top-N as the head of the list
@@ -183,7 +184,8 @@ PUBLIC = ContestConfig(
     # Distinctive early-rank cap=10: public 0.953914 (MTTC 2.505) but
     # holdout 0.88453 / MRR 0.758 < 0.8888. Keep off.
     distinctive_early_cap=0,
-    # MiniLM cosine on hard pools of size 2..80. Missing weights → 0.
+    # MiniLM cosine on hard pools of size 2..80. Missing weights → dense=0
+    # (runnable, not score-equivalent: holdout Hit 0.980→0.975, drops 0090).
     w_dense=0.1,
     dense_pool_limit=80,
     dense_pop_floor=0,

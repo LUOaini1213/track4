@@ -470,8 +470,14 @@ class RerankerBenchmarkTest(unittest.TestCase):
                 validate_model_path(not_a_directory)
 
         # Colab's /content path is a valid explicit artifact location.
-        self.assertEqual(resolve_artifact_root("/content/qwen-results"), Path("/content/qwen-results"))
-        self.assertEqual(resolve_artifact_root("/"), Path("/"))
+        # Compare against Path.resolve() so Windows drive prefixes match.
+        # This helper is Legacy/Qwen infrastructure, not the ContestAgent
+        # scoring path.
+        self.assertEqual(
+            resolve_artifact_root("/content/qwen-results"),
+            Path("/content/qwen-results").resolve(strict=False),
+        )
+        self.assertEqual(resolve_artifact_root("/"), Path("/").resolve(strict=False))
 
     def test_rerank_runner_uses_qwen_config_and_emits_metrics_without_model(self) -> None:
         catalog_rows = [

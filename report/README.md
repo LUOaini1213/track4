@@ -23,7 +23,7 @@
 | [architecture.md](architecture.md) | VoI stopping 数据流；override 分档 / 响应守卫 |
 | [attribution.md](attribution.md) | E1/E2/E3 对 ΔMRR、ΔMTTC、Rank1 的可加贡献 |
 | [robustness.md](robustness.md) | 8×100 ID-disjoint shard：e123 vs A，8/8 同向 |
-| [freeze.md](freeze.md) | **提交冻结**：入口、SHA、无 MiniLM 回退、闸规则 |
+| [freeze.md](freeze.md) | **提交冻结**：唯一 SHA、MiniLM 是正确性依赖、Path("/content/") 为 infrastructure-only |
 | [complete_agent.md](complete_agent.md) | 五段完整 Agent：RRF 实测、LLM blend、门控、为何不做 LambdaMART |
 | [provenance.md](provenance.md) | catalog-side oracle：feature/details/clone/store；**不进 rank()** |
 | [disclosure.md](disclosure.md) | turn/disclosure oracle：+1 other 的 EVI；下一刀不是收窄 A |
@@ -41,4 +41,4 @@ python demo/run_demo.py --session public_0002
 python -m unittest discover -s tests -v
 ```
 
-协议骨架（不要为公开集再拧）：永远问 `other`、逐字 AND、`gate_size=5`、Override 前不出表、`dump_slots=4`。3 槽 field-flat 再问一轮（`ambiguity_defer=a`）。Buying/Browsing 在池 ≤5 但槽未满、或 3 槽 leftover 时再问一轮（`progress_defer=e123`，一次性）。MiniLM 只在有区分项的硬池上。硬池精确行 `w_field=0.35`，标题短语 `w_phrase=0.15`。缺权重则 dense 为 0。
+协议骨架（不要为公开集再拧）：永远问 `other`、逐字 AND、`gate_size=5`、Override 前不出表、`dump_slots=4`。3 槽 field-flat 再问一轮（`ambiguity_defer=a`）。Buying/Browsing 在池 ≤5 但槽未满、或 3 槽 leftover 时再问一轮（`progress_defer=e123`，一次性）。MiniLM 只在有区分项的硬池上。硬池精确行 `w_field=0.35`，标题短语 `w_phrase=0.15`。缺权重则 dense 为 0（Holdout Hit 0.975，不是冠军路径）。

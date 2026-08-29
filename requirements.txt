@@ -1,4 +1,6 @@
-# ContestAgent PUBLIC scoring path uses the Python standard library only.
-# Optional MiniLM (local Hugging Face cache; missing weights → dense=0):
+# ContestAgent PUBLIC scoring path uses the Python standard library only
+# when MiniLM weights are absent (dense=0). That path is runnable, not
+# score-equivalent (holdout Hit 0.980→0.975). Champion MiniLM:
+#   python scripts/vendor_minilm.py
 # torch
 # transformers

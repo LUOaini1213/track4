@@ -867,6 +867,8 @@ class ContestAgentTests(unittest.TestCase):
 
     def test_minilm_loader_uses_cache_then_hub(self) -> None:
         encoder = PoolDenseEncoder()
+        encoder._source = lambda: "sentence-transformers/all-MiniLM-L6-v2"  # type: ignore[method-assign]
+        encoder._source_is_local_dir = lambda: False  # type: ignore[method-assign]
         calls: list[bool] = []
 
         class DummyModel:
@@ -892,6 +894,8 @@ class ContestAgentTests(unittest.TestCase):
             else os.environ.__setitem__("TECHJAM_DENSE_OFFLINE", previous)
         )
         encoder = PoolDenseEncoder()
+        encoder._source = lambda: "sentence-transformers/all-MiniLM-L6-v2"  # type: ignore[method-assign]
+        encoder._source_is_local_dir = lambda: False  # type: ignore[method-assign]
         calls: list[bool] = []
 
         def fake_load(local_files_only: bool):
