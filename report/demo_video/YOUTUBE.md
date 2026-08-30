@@ -21,7 +21,8 @@ Scored path: starter.agent.Agent → ContestAgent PUBLIC, progress_defer=e123, l
 
 python -m evaluator.local_evaluator
 
-SHA 11069c6 (algorithm freeze 3a31ace)
+ByteSize · contest/public · reproducible locally
+(Do not put a commit SHA in the video. Fill the final git rev-parse HEAD on Devpost at submit time.)
 
 ## Settings
 - Visibility: Public

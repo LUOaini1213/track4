@@ -15,9 +15,9 @@ E123 不再当实验版。只在 **正确性 bug** 或 **真正新的信息源**
 | 角色 | SHA | 含义 |
 |---|---|---|
 | **Algorithm freeze** | `3a31aceb969a0697511e254f7273f8b57cb40fce` | 最后一次改 E123 / `rank()`。下面的冠军数字来自这里。 |
-| **Submission SHA** | `contest/public` 的 `git rev-parse HEAD` | 含 MiniLM 可获得性闭环与本文件。**评委只引用这一个。** |
+| **Submission SHA** | Devpost 提交当日的 `git rev-parse HEAD` | 含 MiniLM sidecar loader 与文档。**只填 Devpost，不要写进视频。** |
 
-`3a31ace` 之后的 commit **不允许**改 PUBLIC knobs 或 `rank()`。本文件若与 `git rev-parse HEAD` 不一致，以 HEAD 为准，并在提交当日把 HEAD 写进 Devpost。
+`3a31ace` 之后的 commit **不允许**改 PUBLIC knobs 或 `rank()`。视频/字幕只写 `ByteSize · contest/public · reproducible locally`。最终 SHA 在交 ZIP 那天填 Devpost。ZIP 清单见仓库根目录 `SUBMISSION_CHECKLIST.md`。
 
 个人仓库：`LUOaini1213/techjam-conversational-search` 分支 `contest/public`。组仓库迁移是另一次可审计动作，迁移后必须重跑官方入口，不要假设两仓内容一致。
 

@@ -171,7 +171,7 @@ def card_close() -> Path:
     draw.text((56, 320), "progress_defer = e123   ·   MiniLM late fusion   ·   0 LLM tokens", font=font(28), fill=MUTED)
     draw.rounded_rectangle((56, 420, 1500, 520), radius=8, fill=CARD)
     draw.text((80, 448), "python -m evaluator.local_evaluator", font=mono(28), fill=INK)
-    draw.text((56, 580), "SHA  11069c6   ·   algorithm freeze  3a31ace", font=font(26), fill=MUTED)
+    draw.text((56, 580), "ByteSize  ·  contest/public  ·  reproducible locally", font=font(26), fill=MUTED)
     draw.text((56, 640), "Always ask other. Verbatim AND. Do not rank until the evidence is enough.", font=font(26), fill=MUTED)
     return save(img, "04_close.png")
 
@@ -347,10 +347,30 @@ def concat(ffmpeg: str, clips: list[tuple[Path, float]], dest: Path) -> None:
         capture_output=True,
         text=True,
     )
+    source = dest if burned.returncode == 0 else raw
     if burned.returncode != 0:
-        shutil.copyfile(raw, dest)
         print("captions not burned (no libass); upload captions.en.srt on YouTube", file=sys.stderr)
         print(burned.stderr[-800:], file=sys.stderr)
+    trimmed = FRAMES / "trimmed.mp4"
+    subprocess.run(
+        [
+            ffmpeg,
+            "-y",
+            "-i",
+            str(source),
+            "-t",
+            "180",
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            "-movflags",
+            "+faststart",
+            str(trimmed),
+        ],
+        check=True,
+    )
+    shutil.copyfile(trimmed, dest)
     print(f"wrote {dest}  ({dest.stat().st_size} bytes)")
 
 

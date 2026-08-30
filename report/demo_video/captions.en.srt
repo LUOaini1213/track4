@@ -64,4 +64,4 @@ python -m evaluator.local_evaluator
 
 14
 00:02:55,000 --> 00:03:00,000
-ByteSize · contest/public · 11069c6
+ByteSize · contest/public · reproducible locally

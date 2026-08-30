@@ -23,7 +23,8 @@
 | [architecture.md](architecture.md) | VoI stopping 数据流；override 分档 / 响应守卫 |
 | [attribution.md](attribution.md) | E1/E2/E3 对 ΔMRR、ΔMTTC、Rank1 的可加贡献 |
 | [robustness.md](robustness.md) | 8×100 ID-disjoint shard：e123 vs A，8/8 同向 |
-| [freeze.md](freeze.md) | **提交冻结**：唯一 SHA、MiniLM 是正确性依赖、Path("/content/") 为 infrastructure-only |
+| [freeze.md](freeze.md) | **提交冻结**：算法 SHA、视频不写死 HEAD、MiniLM 是正确性依赖 |
+| [../SUBMISSION_CHECKLIST.md](../SUBMISSION_CHECKLIST.md) | 最终 ZIP 必带 MiniLM sidecar；git 保留研究证据 |
 | [complete_agent.md](complete_agent.md) | 五段完整 Agent：RRF 实测、LLM blend、门控、为何不做 LambdaMART |
 | [provenance.md](provenance.md) | catalog-side oracle：feature/details/clone/store；**不进 rank()** |
 | [disclosure.md](disclosure.md) | turn/disclosure oracle：+1 other 的 EVI；下一刀不是收窄 A |
