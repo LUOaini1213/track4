@@ -28,26 +28,46 @@ def set_completer(fn: CompleteFn | None) -> None:
     _COMPLETE = fn
 
 
-def _api_key() -> str:
-    for name in (
-        "SHOPPING_AGENT_DEEPSEEK_API_KEY",
-        "DEEPSEEK_API_KEY",
-        "TECHJAM_LLM_KEY",
-    ):
-        value = (os.environ.get(name) or "").strip()
-        if value:
-            return value
+def _dotenv_map() -> dict[str, str]:
     path = Path.home() / "Desktop" / ".env"
     try:
-        raw = path.read_text(encoding="utf-8-sig").strip()
+        raw = path.read_text(encoding="utf-8-sig")
     except OSError:
-        return ""
-    if not raw:
-        return ""
-    first = raw.splitlines()[0].strip()
-    if "=" in first:
-        first = first.split("=", 1)[1].strip()
-    return first.strip().strip('"').strip("'")
+        return {}
+    mapped: dict[str, str] = {}
+    for line in raw.splitlines():
+        text = line.strip()
+        if not text or text.startswith("#"):
+            continue
+        if "=" in text:
+            name, value = text.split("=", 1)
+            mapped[name.strip()] = value.strip().strip('"').strip("'")
+        elif "FIRSTLINE" not in mapped:
+            mapped["FIRSTLINE"] = text.strip('"').strip("'")
+    return mapped
+
+
+def _api_key() -> str:
+    """Prefer contest-specific names, then Desktop .env, then generic env.
+
+    A stale process-level ``DEEPSEEK_API_KEY`` must not hide a valid
+    ``Desktop/.env`` key used for local scoring.
+    """
+
+    dotenv = _dotenv_map()
+    ordered = [
+        (os.environ.get("SHOPPING_AGENT_DEEPSEEK_API_KEY") or "").strip(),
+        (os.environ.get("TECHJAM_LLM_KEY") or "").strip(),
+        dotenv.get("SHOPPING_AGENT_DEEPSEEK_API_KEY", ""),
+        dotenv.get("TECHJAM_LLM_KEY", ""),
+        dotenv.get("DEEPSEEK_API_KEY", ""),
+        dotenv.get("FIRSTLINE", ""),
+        (os.environ.get("DEEPSEEK_API_KEY") or "").strip(),
+    ]
+    for source in ordered:
+        if source:
+            return source
+    return ""
 
 
 def _usage(prompt: int = 0, completion: int = 0) -> dict[str, int]:
@@ -130,9 +150,25 @@ def _complete_http(messages: list[dict[str, str]]) -> tuple[str, dict[str, int]]
     if not key:
         return "", _usage()
     timeout = float(os.environ.get("SHOPPING_AGENT_MODEL_TIMEOUT_SECONDS") or 6)
-    model = (os.environ.get("SHOPPING_AGENT_DEEPSEEK_MODEL") or "deepseek-v4-flash").strip()
-    backend = DeepSeekAPIBackend(key, model=model, timeout_seconds=max(timeout, 1.0))
-    response = backend.complete(messages, temperature=0.0, max_tokens=256)
+    preferred = (os.environ.get("SHOPPING_AGENT_DEEPSEEK_MODEL") or "deepseek-chat").strip()
+    models = [preferred]
+    if "deepseek-chat" not in models:
+        models.append("deepseek-chat")
+    last_error: Exception | None = None
+    response = None
+    for model in models:
+        try:
+            backend = DeepSeekAPIBackend(key, model=model, timeout_seconds=max(timeout, 1.0))
+            response = backend.complete(messages, temperature=0.0, max_tokens=256)
+            last_error = None
+            break
+        except Exception as exc:
+            last_error = exc
+            continue
+    if response is None:
+        if last_error is not None:
+            raise last_error
+        return "", _usage()
     content = response.content
     if isinstance(content, (dict, list)):
         text = json.dumps(content, ensure_ascii=False)

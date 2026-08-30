@@ -1,0 +1,47 @@
+{
+  "decision": "keep_frozen_public",
+  "reason": "Network listwise (DeepSeek, llm_listwise=True, RRF blend k=60) dropped Holdout Hit@10 0.980->0.975 (extra miss holdout_0090) and did not beat frozen Holdout TechnicalScore 0.911753.",
+  "gate": {
+    "public_hit": 1.0,
+    "holdout_hit_min": 0.98,
+    "frozen_holdout_score": 0.911753
+  },
+  "frozen": {
+    "public": {
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.954167,
+      "mttc": 2.75,
+      "recommended_technical_score": 0.95125,
+      "tokens": 0
+    },
+    "holdout": {
+      "hit_rate_at_10": 0.98,
+      "mrr": 0.864845,
+      "mttc": 2.885,
+      "recommended_technical_score": 0.911753,
+      "tokens": 0,
+      "misses": ["holdout_0005", "holdout_0052", "holdout_0135", "holdout_0183"]
+    }
+  },
+  "network_listwise": {
+    "public": {
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.934056,
+      "mttc": 2.75,
+      "recommended_technical_score": 0.945217,
+      "tokens": 17634,
+      "rank1": 177
+    },
+    "holdout": {
+      "hit_rate_at_10": 0.975,
+      "mrr": 0.86949,
+      "mttc": 2.925,
+      "recommended_technical_score": 0.909847,
+      "tokens": 31046,
+      "rank1": 164,
+      "misses": ["holdout_0005", "holdout_0052", "holdout_0090", "holdout_0135", "holdout_0183"]
+    }
+  },
+  "qualifies_for_default": false,
+  "PUBLIC.llm_listwise": false
+}

@@ -10,7 +10,9 @@ from pathlib import Path
 from starter.shopping_agent.contest_agent import ContestAgent
 from starter.shopping_agent.contest_config import CLASSMATE, KHANNA, PUBLIC, ContestConfig
 from starter.shopping_agent.contest_dense import PoolDenseEncoder, set_encoder
-from starter.shopping_agent.contest_llm import parse_order, set_completer
+from unittest.mock import patch
+
+from starter.shopping_agent.contest_llm import _api_key, parse_order, set_completer
 from starter.shopping_agent.contest_rerank import PoolReranker, set_reranker
 from starter.shopping_agent.contest_dialogue import parse_opening, parse_reply
 from starter.shopping_agent.contest_index import ContestIndex
@@ -1533,6 +1535,22 @@ class ContestAgentTests(unittest.TestCase):
         self.assertIsNone(parse_order('{"order": [1]}', 2))
         self.assertIsNone(parse_order("not json", 2))
 
+    def test_api_key_prefers_desktop_env_over_stale_process_deepseek(self) -> None:
+        with patch.dict(
+            os.environ,
+            {
+                "DEEPSEEK_API_KEY": "stale-invalid",
+                "SHOPPING_AGENT_DEEPSEEK_API_KEY": "",
+                "TECHJAM_LLM_KEY": "",
+            },
+            clear=False,
+        ):
+            with patch(
+                "starter.shopping_agent.contest_llm._dotenv_map",
+                return_value={"FIRSTLINE": "desktop-good"},
+            ):
+                self.assertEqual(_api_key(), "desktop-good")
+
     def test_llm_listwise_reorders_shortlist_and_bad_json_keeps_popularity(self) -> None:
         rows = [
             {
@@ -1559,6 +1577,18 @@ class ContestAgentTests(unittest.TestCase):
                 "average_rating": 4.8,
                 "rating_number": 40,
             },
+            {
+                "parent_asin": "TAIL",
+                "title": "Spare cotton shirt",
+                "features": ["ribbed crew neck"],
+                "description": ["tee"],
+                "categories": ["Shirts"],
+                "details": {"department": "mens"},
+                "store": "TailBrand",
+                "price": 18.0,
+                "average_rating": 4.1,
+                "rating_number": 10,
+            },
         ]
         path = Path(self.tempdir.name) / "llm_catalog.jsonl"
         path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
@@ -1573,15 +1603,21 @@ class ContestAgentTests(unittest.TestCase):
         agent = ContestAgent(path, config=cfg)
         opening = "I'm looking for shirts. A key requirement is: ribbed crew neck."
 
-        def flip(messages: list[dict[str, str]]) -> tuple[str, dict[str, int]]:
+        def promote(messages: list[dict[str, str]]) -> tuple[str, dict[str, int]]:
             del messages
-            return '{"order": [2, 1]}', {"prompt_tokens": 12, "completion_tokens": 4, "total_tokens": 16}
+            # TARGET, TAIL, HOT — RRF with k=60 lifts TARGET over HOT.
+            return '{"order": [2, 3, 1]}', {
+                "prompt_tokens": 12,
+                "completion_tokens": 4,
+                "total_tokens": 16,
+            }
 
-        set_completer(flip)
+        set_completer(promote)
         agent.reset("s", {})
         flipped = agent.respond("s", opening, 1, 10)
         ids = [item["parent_asin"] for item in flipped["recommendations"]]
-        self.assertEqual(ids[:2], ["HOT", "TARGET"])
+        self.assertEqual(flipped["ask_attribute"], "other")
+        self.assertEqual(ids[:3], ["TARGET", "HOT", "TAIL"])
         self.assertEqual(flipped["usage"]["prompt_tokens"], 12)
 
         def broken(messages: list[dict[str, str]]) -> tuple[str, dict[str, int]]:
@@ -1592,7 +1628,20 @@ class ContestAgentTests(unittest.TestCase):
         agent.reset("t", {})
         kept = agent.respond("t", opening, 1, 10)
         kept_ids = [item["parent_asin"] for item in kept["recommendations"]]
-        self.assertEqual(kept_ids[:2], ["HOT", "TARGET"])
+        self.assertEqual(kept["ask_attribute"], "other")
+        self.assertEqual(kept_ids[:3], ["HOT", "TARGET", "TAIL"])
+
+        def timeout(messages: list[dict[str, str]]) -> tuple[str, dict[str, int]]:
+            del messages
+            raise TimeoutError("network timeout")
+
+        set_completer(timeout)
+        agent.reset("u", {})
+        timed = agent.respond("u", opening, 1, 10)
+        timed_ids = [item["parent_asin"] for item in timed["recommendations"]]
+        self.assertEqual(timed["ask_attribute"], "other")
+        self.assertEqual(timed_ids[:3], ["HOT", "TARGET", "TAIL"])
+        self.assertTrue(all(isinstance(item.get("parent_asin"), str) for item in timed["recommendations"]))
 
     def test_dense_pop_floor_keeps_eighth_popular_in_top10(self) -> None:
         rows = []
