@@ -1,0 +1,67 @@
+1
+00:00:00,000 --> 00:00:05,000
+TikTok TechJam 2026 · Track 4
+ByteSize — Conversational Shopping Search
+
+2
+00:00:05,000 --> 00:00:18,000
+Evidence-Aware Conversational Search
+with Value-of-Information Stopping
+
+3
+00:00:18,000 --> 00:00:28,000
+We stopped optimizing how the agent ranks,
+and started optimizing when it knows enough to rank.
+
+4
+00:00:28,000 --> 00:00:38,000
+Scoring punishes extra turns.
+We still ask — but only when the answer is worth the MTTC tax.
+
+5
+00:00:38,000 --> 00:00:48,000
+Live official simulator. Session public_0002.
+Intent Override. Always ask_attribute = other. 0 tokens.
+
+6
+00:00:48,000 --> 00:01:05,000
+Turn 1: vague belt request.
+Pool is large — withhold the list. Keep gathering evidence.
+
+7
+00:01:05,000 --> 00:01:22,000
+Turn 2: leather is disclosed.
+Hard pool shrinks. Still not enough. Ask other again.
+
+8
+00:01:22,000 --> 00:01:40,000
+Turn 3: customer overrides the earlier preference.
+State replaces, it does not append contradictory slots.
+
+9
+00:01:40,000 --> 00:02:05,000
+Turn 4: evidence is enough.
+Recommend. Target Hide & Drink leather belt — rank 1, hit.
+
+10
+00:02:05,000 --> 00:02:18,000
+Same protocol on 800 unseen, ID-disjoint sessions.
+
+11
+00:02:18,000 --> 00:02:32,000
++60 Rank-1 recommendations / 800 sessions.
+Zero Hit-rate loss. Improvement on all 8/8 shards.
+
+12
+00:02:32,000 --> 00:02:45,000
+Public 200: Hit 1.000 · TechnicalScore 0.95125
+Holdout 200: Hit 0.980 · Score 0.911753 · Rank-1 162
+
+13
+00:02:45,000 --> 00:02:55,000
+Local MiniLM late fusion. No LLM on the scored path.
+python -m evaluator.local_evaluator
+
+14
+00:02:55,000 --> 00:03:00,000
+ByteSize · contest/public · 11069c6

@@ -25,3 +25,5 @@ results_rules.json
 # MiniLM sidecar (Apache-2.0). Vendor with scripts/vendor_minilm.py.
 # Include the directory in the Devpost zip; do not commit the blobs.
 models/all-MiniLM-L6-v2/
+node_modules/
+report/demo_video/_frames/
