@@ -1,67 +1,201 @@
 1
-00:00:00,000 --> 00:00:05,000
-TikTok TechJam 2026 · Track 4
-ByteSize — Conversational Shopping Search
+00:00:00,000 --> 00:00:02,944
+Online shopping has a conversation problem.
 
 2
-00:00:05,000 --> 00:00:18,000
-Evidence-Aware Conversational Search
-with Value-of-Information Stopping
+00:00:02,944 --> 00:00:08,216
+Filter walls make you translate what
+you want into someone else's categories.
 
 3
-00:00:18,000 --> 00:00:28,000
-We stopped optimizing how the agent ranks,
-and started optimizing when it knows enough to rank.
+00:00:08,216 --> 00:00:10,270
+AI assistants do the opposite,
 
 4
-00:00:28,000 --> 00:00:38,000
-Scoring punishes extra turns.
-We still ask — but only when the answer is worth the MTTC tax.
+00:00:10,270 --> 00:00:14,104
+interrogating you for ten
+turns before showing anything.
 
 5
-00:00:38,000 --> 00:00:48,000
-Live official simulator. Session public_0002.
-Intent Override. Always ask_attribute = other. 0 tokens.
+00:00:14,104 --> 00:00:18,417
+Both burn the one thing shoppers
+will not give twice: patience.
 
 6
-00:00:48,000 --> 00:01:05,000
-Turn 1: vague belt request.
-Pool is large — withhold the list. Keep gathering evidence.
+00:00:18,417 --> 00:00:22,017
+So we stopped optimizing
+how our agent ranks products,
 
 7
-00:01:05,000 --> 00:01:22,000
-Turn 2: leather is disclosed.
-Hard pool shrinks. Still not enough. Ask other again.
+00:00:22,017 --> 00:00:25,951
+and started optimizing when it
+knows enough to rank at all.
 
 8
-00:01:22,000 --> 00:01:40,000
-Turn 3: customer overrides the earlier preference.
-State replaces, it does not append contradictory slots.
+00:00:25,951 --> 00:00:31,551
+Every turn resolves one question: is
+another question worth more than another guess?
 
 9
-00:01:40,000 --> 00:02:05,000
-Turn 4: evidence is enough.
-Recommend. Target Hide & Drink leather belt — rank 1, hit.
+00:00:31,551 --> 00:00:36,951
+Modelling that value-of-information
+decision explicitly is our core contribution.
 
 10
-00:02:05,000 --> 00:02:18,000
-Same protocol on 800 unseen, ID-disjoint sessions.
+00:00:36,951 --> 00:00:40,285
+It converges in under
+three turns, at zero tokens.
 
 11
-00:02:18,000 --> 00:02:32,000
-+60 Rank-1 recommendations / 800 sessions.
-Zero Hit-rate loss. Improvement on all 8/8 shards.
+00:00:40,285 --> 00:00:45,976
+Five deterministic stages. Dialogue
+state tracks slots and intent overrides.
 
 12
-00:02:32,000 --> 00:02:45,000
-Public 200: Hit 1.000 · TechnicalScore 0.95125
-Holdout 200: Hit 0.980 · Score 0.911753 · Rank-1 162
+00:00:45,976 --> 00:00:49,794
+An exact-evidence
+conjunction builds the hard pool.
 
 13
-00:02:45,000 --> 00:02:55,000
-Local MiniLM late fusion. No LLM on the scored path.
-python -m evaluator.local_evaluator
+00:00:49,794 --> 00:00:54,886
+The value-of-information
+controller then decides: ask, or recommend.
 
 14
-00:02:55,000 --> 00:03:00,000
-ByteSize · contest/public · reproducible locally
+00:00:54,886 --> 00:00:57,881
+Ranking is popularity-first late fusion,
+
+15
+00:00:57,881 --> 00:01:02,448
+with a local MiniLM encoder
+adding a small cosine adjustment.
+
+16
+00:01:02,448 --> 00:01:06,192
+The optional language
+model rerank ships disabled.
+
+17
+00:01:06,192 --> 00:01:11,380
+This is the organizers' own
+simulator — no mock-up, no website.
+
+18
+00:01:11,380 --> 00:01:16,239
+Session public zero zero two,
+the Intent Override scenario.
+
+19
+00:01:16,239 --> 00:01:20,609
+Turn one. The customer wants
+a belt with a buckle closure.
+
+20
+00:01:20,609 --> 00:01:24,075
+That matches two hundred fifty-eight products,
+
+21
+00:01:24,075 --> 00:01:28,972
+so the agent withholds the list
+entirely and asks about material.
+
+22
+00:01:28,972 --> 00:01:35,708
+Turn two. Leather is disclosed and the hard
+pool collapses from two hundred fifty-eight to
+
+23
+00:01:35,708 --> 00:01:39,076
+twenty-two. A weaker agent would answer here.
+
+24
+00:01:39,076 --> 00:01:42,818
+Ours calculates that one
+more question still wins.
+
+25
+00:01:42,818 --> 00:01:46,206
+Turn three: the customer changes their mind.
+
+26
+00:01:46,206 --> 00:01:51,981
+The state replaces the old preference
+instead of appending a contradiction,
+
+27
+00:01:51,981 --> 00:01:55,215
+and any hit scored before it is discarded.
+
+28
+00:01:55,215 --> 00:02:00,934
+Turn four. Two more attributes
+arrive, the hard pool drops to seven,
+
+29
+00:02:00,934 --> 00:02:05,476
+and the controller decides
+the evidence is sufficient.
+
+30
+00:02:05,476 --> 00:02:10,438
+It recommends — and the target
+belt comes back at rank one.
+
+31
+00:02:10,438 --> 00:02:15,621
+That is the whole idea: ask while
+the answer would change the ranking,
+
+32
+00:02:15,621 --> 00:02:18,065
+and stop the moment it would not.
+
+33
+00:02:18,065 --> 00:02:22,005
+The weak baseline finds the
+target twelve percent of the time.
+
+34
+00:02:22,005 --> 00:02:24,547
+We find it every time on the public set,
+
+35
+00:02:24,547 --> 00:02:27,407
+at a technical score of zero point nine five.
+
+36
+00:02:27,407 --> 00:02:32,110
+But the number we actually trust is
+this one: across eight hundred unseen,
+
+37
+00:02:32,110 --> 00:02:33,953
+identifier-disjoint sessions,
+
+38
+00:02:33,953 --> 00:02:39,037
+our stopping controller delivered sixty
+additional rank-one recommendations with
+
+39
+00:02:39,037 --> 00:02:42,786
+zero Hit-rate loss, improving
+on all eight of eight shards.
+
+40
+00:02:42,786 --> 00:02:48,784
+Zero marginal inference cost means
+this deploys at marketplace scale,
+
+41
+00:02:48,784 --> 00:02:50,088
+not demo scale.
+
+42
+00:02:50,088 --> 00:02:56,609
+It runs offline on commodity CPU, so
+no shopping intent leaves the process.
+
+43
+00:02:56,609 --> 00:02:59,999
+And the controller is catalog agnostic.

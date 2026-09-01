@@ -178,18 +178,33 @@ def card_problem(progress: float) -> Path:
         (1344, "THE COST", "Patience. The one thing a\nshopper will not give twice.", ACCENT),
     ]
     for x, head, body, colour in panels:
-        draw.rounded_rectangle((x, 300, x + 520, 620), radius=14, fill=CARD)
-        draw.text((x + 36, 340), head, font=font(24, True), fill=colour)
-        yy = 400
+        draw.rounded_rectangle((x, 300, x + 520, 640), radius=14, fill=CARD)
+        draw.text((x + 36, 344), head, font=font(24, True), fill=colour)
+        yy = 410
         for line in body.split("\n"):
             draw.text((x + 36, yy), line, font=font(30), fill=INK)
             yy += 46
 
+    # The turn tax is the whole reason stopping early is worth modelling, so
+    # show the rule that charges for it rather than only asserting it.
+    draw.rounded_rectangle((56, 710, 1864, 900), radius=14, fill=PANEL)
     draw.text(
-        (56, 720),
-        "The scoring rule agrees: every extra turn is taxed through MTTC.",
-        font=font(32),
+        (88, 748),
+        "THE SCORING RULE AGREES \u2014 EVERY EXTRA TURN IS TAXED",
+        font=font(24, True),
         fill=MUTED,
+    )
+    draw.text(
+        (88, 800),
+        "TechnicalScore = 0.50 \u00d7 Hit@10  +  0.30 \u00d7 MRR  +  0.20 \u00d7 Efficiency",
+        font=mono(30),
+        fill=INK,
+    )
+    draw.text(
+        (88, 848),
+        "Efficiency = clip((11 \u2212 MTTC) / 10, 0, 1)",
+        font=mono(28),
+        fill=ACCENT,
     )
     return save(img, "01_problem.png")
 
@@ -220,17 +235,34 @@ def card_solution(progress: float) -> Path:
         46,
     )
 
+    # The decision rule itself, rather than a dead band between claim and stats.
+    draw.rounded_rectangle((56, y + 44, 1864, y + 226), radius=14, fill=PANEL)
+    draw.text(
+        (96, y + 84),
+        "while another answer would still change the ranking",
+        font=mono(30),
+        fill=INK,
+    )
+    draw.text((1180, y + 84), "\u2192   ask", font=mono(30), fill=YELLOW)
+    draw.text(
+        (96, y + 148),
+        "the moment it would not",
+        font=mono(30),
+        fill=INK,
+    )
+    draw.text((1180, y + 148), "\u2192   recommend", font=mono(30), fill=GREEN)
+
     stats = [
         (56, "2.75", "turns to converge", "budget is 10"),
         (656, "0", "LLM tokens", "$0 per session"),
         (1256, "100%", "public Hit@10", "200 sessions"),
     ]
     for x, big, label, sub in stats:
-        draw.rounded_rectangle((x, 730, x + 560, 940), radius=14, fill=CARD)
+        draw.rounded_rectangle((x, 760, x + 560, 960), radius=14, fill=CARD)
         cx = x + 280
-        draw.text((cx, 800), big, font=font(68, True), fill=INK, anchor="mm")
-        draw.text((cx, 870), label, font=font(28), fill=INK, anchor="mm")
-        draw.text((cx, 908), sub, font=font(22), fill=MUTED, anchor="mm")
+        draw.text((cx, 826), big, font=font(68, True), fill=INK, anchor="mm")
+        draw.text((cx, 892), label, font=font(28), fill=INK, anchor="mm")
+        draw.text((cx, 930), sub, font=font(22), fill=MUTED, anchor="mm")
     return save(img, "02_solution.png")
 
 
@@ -348,18 +380,30 @@ def card_impact(progress: float) -> Path:
     return save(img, "06_impact.png")
 
 
-def term_card(
+REVEAL = 0.5  # seconds a freshly typed line holds before the next one lands
+
+
+def term_still(
     name: str,
     heading: str,
     body: list[str],
     footer: str,
     progress: float,
+    shown: int,
+    partial: str | None = None,
+    caret: bool = False,
 ) -> Path:
+    """One frame of the terminal, holding the first `shown` lines of body.
+
+    `partial` truncates the last visible line mid-sentence so the customer's
+    message can be seen arriving; `caret` parks a block cursor after it.
+    """
+
     img, draw = canvas("04  Live Demo", progress)
     draw.text((56, 130), heading, font=font(38, True), fill=INK)
     draw.text(
         (W - 56, 140),
-        "official simulator  ·  public_0002  ·  intent override",
+        "official simulator  \u00b7  public_0002  \u00b7  intent override",
         font=font(24),
         fill=ACCENT,
         anchor="ra",
@@ -367,7 +411,10 @@ def term_card(
     draw.rounded_rectangle((56, 200, 1864, 880), radius=12, fill=PANEL)
     y = 232
     fnt = mono(26)
-    for line in body:
+    visible = body[:shown]
+    for index, line in enumerate(visible):
+        if partial is not None and index == len(visible) - 1:
+            line = partial
         colour = INK
         if line.startswith("customer:"):
             colour = YELLOW
@@ -377,12 +424,63 @@ def term_card(
             colour = ACCENT
         elif line.startswith(("ask=", "usage", "[", "scope=", "scenario=", "target=", "---")):
             colour = MUTED
-        draw.text((88, y), line[:112], font=fnt, fill=colour)
+        text = line[:112]
+        draw.text((88, y), text, font=fnt, fill=colour)
+        if caret and index == len(visible) - 1:
+            x = 88 + draw.textlength(text, font=fnt)
+            draw.rectangle((x + 5, y + 4, x + 17, y + 30), fill=MUTED)
         y += 38
         if y > 850:
             break
     draw.text((56, 910), footer, font=font(26), fill=MUTED)
     return save(img, name)
+
+
+def term_frames(
+    stem: str,
+    heading: str,
+    body: list[str],
+    footer: str,
+    progress: float,
+) -> list[tuple[Path, float | None]]:
+    """Type the turn out line by line instead of cutting to a finished card.
+
+    A still card only claims a demo. Watching the customer's message arrive,
+    the pool collapse, and the ranked rows land one at a time is the demo.
+    Reveal frames are short and fixed; the completed card takes whatever is
+    left of the segment, so the narration still plays over the full state.
+    """
+
+    steps: list[tuple[int, str | None]] = []
+    for index, line in enumerate(body):
+        if not line.strip():
+            continue
+        # The customer's own words type in. Machine output lands whole.
+        if line.startswith("customer:") and len(line) > 34:
+            steps.append((index + 1, line[: len(line) * 2 // 3]))
+        steps.append((index + 1, None))
+
+    frames: list[tuple[Path, float | None]] = []
+    for n, (shown, partial) in enumerate(steps):
+        last = n == len(steps) - 1
+        frames.append(
+            (
+                term_still(
+                    f"{stem}_{n:02d}.png",
+                    heading,
+                    body,
+                    # The verdict line is the punchline; it waits for the
+                    # rows that earn it rather than spoiling them.
+                    footer if last else "",
+                    progress,
+                    shown,
+                    partial,
+                    caret=not last,
+                ),
+                None if last else REVEAL,
+            )
+        )
+    return frames
 
 
 # --------------------------------------------------------------------------- #
@@ -406,9 +504,9 @@ def storyboard() -> list[Segment]:
     demo = [
         (
             "d0",
-            10.0,
-            "This is the organizers' own simulator — no mock-up, no website. Session public zero zero two, "
-            "the Intent Override scenario, the hardest of the four.",
+            9.0,
+            "This is the organizers' own simulator — no mock-up, no website. Session public zero zero "
+            "two, the Intent Override scenario.",
             "Setup  ·  0 tokens",
             [
                 "scenario=intent_override   sample=public_0002",
@@ -420,7 +518,7 @@ def storyboard() -> list[Segment]:
         ),
         (
             "d1",
-            15.0,
+            13.0,
             "Turn one. The customer wants a belt with a buckle closure. That matches two hundred fifty-eight "
             "products, so the agent withholds the list entirely and asks about material.",
             "Turn 1  ·  withhold",
@@ -435,7 +533,7 @@ def storyboard() -> list[Segment]:
         ),
         (
             "d2",
-            15.0,
+            14.0,
             "Turn two. Leather is disclosed and the hard pool collapses from two hundred fifty-eight to "
             "twenty-two. A weaker agent would answer here. Ours calculates that one more question still wins.",
             "Turn 2  ·  still gathering",
@@ -450,9 +548,9 @@ def storyboard() -> list[Segment]:
         ),
         (
             "d3",
-            16.0,
-            "Turn three, and the customer changes their mind. This is the override case. The state replaces "
-            "the old preference instead of appending a contradiction, and any hit scored before it is discarded.",
+            13.0,
+            "Turn three: the customer changes their mind. The state replaces the old preference instead "
+            "of appending a contradiction, and any hit scored before it is discarded.",
             "Turn 3  ·  override replaces state",
             [
                 "[simulator] intent override",
@@ -466,7 +564,7 @@ def storyboard() -> list[Segment]:
         ),
         (
             "d4",
-            20.0,
+            16.0,
             "Turn four. Two more attributes arrive, the hard pool drops to seven, and the controller decides "
             "the evidence is sufficient. It recommends — and the target belt comes back at rank one.",
             "Turn 4  ·  evidence is enough",
@@ -483,7 +581,7 @@ def storyboard() -> list[Segment]:
         ),
         (
             "d5",
-            9.0,
+            8.0,
             "That is the whole idea: ask while the answer would change the ranking, and stop the moment "
             "it would not.",
             "HIT  ·  turn 4  ·  rank 1",
@@ -500,7 +598,7 @@ def storyboard() -> list[Segment]:
         Segment(
             "problem",
             "01  Problem",
-            15.0,
+            17.0,
             "Online shopping has a conversation problem. Filter walls make you translate what you want into "
             "someone else's categories. AI assistants do the opposite, interrogating you for ten turns "
             "before showing anything. Both burn the one thing shoppers will not give twice: patience.",
@@ -509,7 +607,7 @@ def storyboard() -> list[Segment]:
         Segment(
             "solution",
             "02  Our Solution",
-            20.0,
+            22.0,
             "So we stopped optimizing how our agent ranks products, and started optimizing when it knows "
             "enough to rank at all. Every turn resolves one question: is another question worth more than "
             "another guess? Modelling that value-of-information decision explicitly is our core "
@@ -519,12 +617,11 @@ def storyboard() -> list[Segment]:
         Segment(
             "architecture",
             "03  Architecture",
-            20.0,
+            25.0,
             "Five deterministic stages. Dialogue state tracks slots and intent overrides. An exact-evidence "
-            "conjunction builds a hard candidate pool. The value-of-information controller decides: ask, or "
-            "recommend. When it recommends, popularity-first late fusion ranks the pool, with a local "
-            "MiniLM encoder adding a small cosine adjustment. An optional language model rerank ships "
-            "disabled.",
+            "conjunction builds the hard pool. The value-of-information controller then decides: ask, or "
+            "recommend. Ranking is popularity-first late fusion, with a local MiniLM encoder adding a small "
+            "cosine adjustment. The optional language model rerank ships disabled.",
             card_architecture,
         ),
     ]
@@ -536,8 +633,8 @@ def storyboard() -> list[Segment]:
                 "04  Live Demo",
                 target,
                 narration,
-                lambda progress, k=key, h=heading, b=body, f=footer: term_card(
-                    f"04_{k}.png", h, b, f, progress
+                lambda progress, k=key, h=heading, b=body, f=footer: term_frames(
+                    f"04_{k}", h, b, f, progress
                 ),
             )
         )
@@ -559,10 +656,10 @@ def storyboard() -> list[Segment]:
         Segment(
             "impact",
             "06  Impact",
-            15.0,
+            18.0,
             "Zero marginal inference cost means this deploys at marketplace scale, not demo scale. It runs "
             "offline on commodity CPU, so no shopping intent leaves the process. And the controller is "
-            "catalog agnostic. ByteSize, contest public, reproducible locally.",
+            "catalog agnostic.",
             card_impact,
         )
     )
@@ -617,6 +714,8 @@ def tts_sapi(text: str, dest: Path) -> bool:
             ["powershell", "-NoProfile", "-Command", script],
             input=_clean(text),
             text=True,
+            encoding="utf-8",
+            errors="replace",
             check=True,
             capture_output=True,
             timeout=180,
@@ -673,8 +772,16 @@ def find_ffmpeg() -> str:
 def run(
     cmd: list[str], check: bool = True, cwd: Path | None = None
 ) -> subprocess.CompletedProcess[str]:
+    # Pin the pipe encoding. ffmpeg's banner carries a non-ASCII (R), and on a
+    # non-UTF-8 Windows codepage Python decodes the pipe with the ANSI codepage,
+    # kills the reader thread mid-stream, and hands back proc.stderr = None.
     proc = subprocess.run(
-        cmd, capture_output=True, text=True, cwd=str(cwd) if cwd else None
+        cmd,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        cwd=str(cwd) if cwd else None,
     )
     if check and proc.returncode != 0:
         print(f"ffmpeg failed: {' '.join(cmd[1:])}", file=sys.stderr)
@@ -771,7 +878,11 @@ CAPTION_STYLE = (
 )
 
 
-def build_video(ffmpeg: str, segments: list[Segment], frames: list[Path]) -> Path:
+def build_video(
+    ffmpeg: str,
+    segments: list[Segment],
+    frames: list[list[tuple[Path, float | None]]],
+) -> Path:
     """Concatenate the stills and burn captions in a single 1080p encode.
 
     The subtitles filter is run from inside _frames against a bare ASCII
@@ -782,10 +893,18 @@ def build_video(ffmpeg: str, segments: list[Segment], frames: list[Path]) -> Pat
 
     listing = FRAMES / "concat.txt"
     lines: list[str] = []
-    for path, seg in zip(frames, segments):
-        lines.append(f"file '{path.as_posix()}'")
-        lines.append(f"duration {seg.duration:.3f}")
-    lines.append(f"file '{frames[-1].as_posix()}'")
+    for shots, seg in zip(frames, segments):
+        # Reveal frames are fixed-length, but never at the cost of the state
+        # the narration describes: the finished card keeps half the segment.
+        fixed = sum(hold for _, hold in shots if hold is not None)
+        budget = seg.duration * 0.5
+        scale = 1.0 if fixed <= budget else budget / fixed
+        rest = seg.duration - fixed * scale
+        for path, hold in shots:
+            span = rest if hold is None else hold * scale
+            lines.append(f"file '{path.as_posix()}'")
+            lines.append(f"duration {span:.3f}")
+    lines.append(f"file '{frames[-1][-1][0].as_posix()}'")
     listing.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     subs = FRAMES / "subs.srt"
@@ -828,19 +947,108 @@ def finish(ffmpeg: str, video: Path, track: Path | None, dest: Path) -> None:
 # --------------------------------------------------------------------------- #
 
 
-def caption_chunks(text: str, limit: int = 92) -> list[str]:
-    chunks: list[str] = []
+CAPTION_LIMIT = 84      # characters per cue, comfortable over two lines
+MIN_CUE = 1.2           # seconds; a shorter cue is gone before it can be read
+
+_SENTENCE = re.compile(r"(?<=[.!?])\s+")
+_CLAUSE = re.compile(r"(?<=[,;:])\s+|\s+\u2014\s+")
+
+
+def _units(text: str, limit: int) -> list[str]:
+    """Split narration where the voice actually pauses.
+
+    Sentences first, then clause punctuation, and only as a last resort mid
+    phrase. No unit exceeds the limit, so packing them can never overflow.
+    """
+
+    units: list[str] = []
+    for sentence in _SENTENCE.split(text.strip()):
+        sentence = sentence.strip()
+        if not sentence:
+            continue
+        if len(sentence) <= limit:
+            units.append(sentence)
+            continue
+        for clause in _CLAUSE.split(sentence):
+            clause = clause.strip()
+            if not clause:
+                continue
+            if len(clause) <= limit:
+                units.append(clause)
+                continue
+            line = ""
+            for word in clause.split():
+                trial = word if not line else f"{line} {word}"
+                if len(trial) <= limit:
+                    line = trial
+                else:
+                    units.append(line)
+                    line = word
+            if line:
+                units.append(line)
+    return units
+
+
+def caption_chunks(text: str, limit: int = CAPTION_LIMIT) -> list[str]:
+    """Cue text that starts and ends on a pause.
+
+    Packing purely by width strands the tail of a sentence in a cue of its
+    own, the 0.6s "patience." that flashes past unread. Cut on pauses, then
+    glue neighbouring units back together while they still fit.
+    """
+
+    cues: list[str] = []
+    for unit in _units(text, limit):
+        if cues and len(cues[-1]) + 1 + len(unit) <= limit:
+            cues[-1] = f"{cues[-1]} {unit}"
+        else:
+            cues.append(unit)
+    return cues
+
+
+def merge_short_cues(
+    cues: list[str], duration: float, minimum: float = MIN_CUE
+) -> list[str]:
+    """Fold away any cue too brief to read.
+
+    A cue's span is proportional to its length, so the shortest cue is also
+    the shortest-lived. Merge it into the cue before it, or into the one after
+    when it is first, until every cue survives long enough to be read.
+    """
+
+    cues = list(cues)
+    while len(cues) > 1:
+        total = sum(len(c) for c in cues) or 1
+        spans = [duration * len(c) / total for c in cues]
+        i = min(range(len(cues)), key=spans.__getitem__)
+        if spans[i] >= minimum:
+            break
+        if i == 0:
+            cues[1] = f"{cues[0]} {cues[1]}"
+            del cues[0]
+        else:
+            cues[i - 1] = f"{cues[i - 1]} {cues[i]}"
+            del cues[i]
+    return cues
+
+
+def caption_lines(text: str, per_line: int = 46) -> str:
+    """Balance a cue across as few lines as it needs, breaking on words."""
+
+    rows = max(1, -(-len(text) // per_line))
+    target = -(-len(text) // rows)
+    out: list[str] = []
     cur = ""
     for word in text.split():
         trial = word if not cur else f"{cur} {word}"
-        if len(trial) <= limit:
-            cur = trial
-        else:
-            chunks.append(cur)
+        if cur and len(trial) > target and len(out) < rows - 1:
+            out.append(cur)
             cur = word
+        else:
+            cur = trial
     if cur:
-        chunks.append(cur)
-    return chunks
+        out.append(cur)
+    return "\n".join(out)
 
 
 def stamp(seconds: float) -> str:
@@ -857,21 +1065,15 @@ def write_srt(segments: list[Segment]) -> None:
     blocks: list[str] = []
     index = 1
     for seg in segments:
-        chunks = caption_chunks(seg.narration)
+        chunks = merge_short_cues(caption_chunks(seg.narration), seg.duration)
         weights = [len(c) for c in chunks]
         total = sum(weights) or 1
         cursor = seg.start
         for chunk, weight in zip(chunks, weights):
             span = seg.duration * weight / total
-            head = chunk if len(chunk) <= 46 else None
-            if head is None:
-                words = chunk.split()
-                mid = len(words) // 2
-                body = " ".join(words[:mid]) + "\n" + " ".join(words[mid:])
-            else:
-                body = chunk
             blocks.append(
-                f"{index}\n{stamp(cursor)} --> {stamp(cursor + span)}\n{body}\n"
+                f"{index}\n{stamp(cursor)} --> {stamp(cursor + span)}\n"
+                f"{caption_lines(chunk)}\n"
             )
             index += 1
             cursor += span
@@ -894,8 +1096,12 @@ def main() -> int:
     plan(ffmpeg, segments)
 
     total = sum(seg.duration for seg in segments)
-    frames = [seg.render(seg.start / total) for seg in segments]
-    print(f"rendered {len(frames)} frames  ·  {total:.1f}s")
+    frames: list[list[tuple[Path, float | None]]] = []
+    for seg in segments:
+        shot = seg.render(seg.start / total)
+        frames.append([(shot, None)] if isinstance(shot, Path) else list(shot))
+    count = sum(len(shots) for shots in frames)
+    print(f"rendered {count} frames over {len(segments)} slides  \u00b7  {total:.1f}s")
 
     write_srt(segments)
     track = build_audio(ffmpeg, segments)
