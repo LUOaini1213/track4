@@ -44,9 +44,13 @@ INCLUDE_FILES = [
     "data/README.md",
 ]
 
+# The whole package, not just contest_*.py. starter/shopping_agent/__init__.py
+# eagerly imports catalog/config/model/state/policy/... and starter/agent.py
+# imports ranking/response/retrieval for LegacyAgent, so a contest_*-only ZIP
+# raises ModuleNotFoundError on `from starter.agent import Agent`. Every module
+# here is stdlib-only at import time; torch/transformers/flashrank are lazy.
 INCLUDE_GLOBS = [
-    "starter/shopping_agent/contest_*.py",
-    "starter/shopping_agent/__init__.py",
+    "starter/shopping_agent/*.py",
 ]
 
 # Hugging Face snapshot also ships ONNX/TF/PyTorch duplicates (~800MB).
