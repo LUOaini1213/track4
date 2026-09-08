@@ -1,0 +1,25 @@
+name: ci
+
+# Standard library only: the scored path needs no third-party package, and
+# the MiniLM sidecar is deliberately not in the repository, so this job runs
+# the agent on its dense=0 fallback. It proves the contract, the controller,
+# the packaging and the offline / 0-token guarantee; the score-equivalent
+# numbers come from the committed evaluation artifacts, not from CI.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Unit tests (no catalog download, no network)
+        run: python -m unittest discover -s tests
+      - name: One documented session on the committed mini catalog
+        run: python demo/run_demo.py --session public_0002

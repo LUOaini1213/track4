@@ -28,3 +28,4 @@ models/all-MiniLM-L6-v2/
 node_modules/
 report/demo_video/_frames/
 submission_dist/
+submission_dist_old/
