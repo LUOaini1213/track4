@@ -106,7 +106,7 @@ tuned on is itself part of the result.
 - **Graceful degradation, honestly disclosed.** If the encoder is missing the agent
   still runs, but holdout Hit@10 drops from 0.980 to 0.975. We document that as a
   correctness dependency rather than describing the fallback as equivalent.
-- **Tested.** 133 tests covering the agent contract, dialogue state, override scoping,
+- **Tested.** 149 tests covering the agent contract, dialogue state, override scoping,
   response guards, retrieval, dense fusion, model fallback and submission packaging.
 
 ### Impact and relevance

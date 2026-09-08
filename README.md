@@ -2,6 +2,8 @@
 
 TechJam Track 4: Conversational E-Commerce Search Challenge.
 
+[![ci](https://github.com/LUOaini1213/track4/actions/workflows/ci.yml/badge.svg)](https://github.com/LUOaini1213/track4/actions/workflows/ci.yml)
+
 A multi-turn shopping agent that finds a customer's hidden target product inside a
 frozen 50,000-item Amazon catalog. The agent decides, every turn, whether it has
 **enough evidence to recommend** or should **spend one more turn asking**. It runs
@@ -37,7 +39,7 @@ gzip -dc catalog.jsonl.gz > data/catalog.jsonl
 python -m evaluator.local_evaluator --catalog data/catalog.jsonl \
     --dataset data/public_set.jsonl --output results.json
 
-# 3. Full test suite (133 tests)
+# 3. Full test suite (149 tests, standard library only, no catalog download)
 python -m unittest discover -s tests -v
 
 # 4. Watch one multi-turn session end to end
@@ -47,6 +49,53 @@ python demo/run_demo.py --scenario buying
 
 No environment variables are required. With no variables set, no model backend is
 constructed and **no network request is made**.
+
+No catalog yet? `python demo/run_demo.py --session public_0002` falls back to
+`data/catalog.mini.jsonl` (2.2 MB, in the repository): the four documented demo
+sessions (`public_0001`, `public_0002`, `public_0007`, `public_0035`) replay
+line-for-line identically to the full catalog because their whole shelf is kept;
+other sessions run but are not pool-equivalent, and no score computed on the
+slice means anything. `scripts/make_mini_catalog.py` rebuilds it.
+
+What one session looks like (`python demo/run_demo.py --session public_0002`, the
+intent-override case; full transcript in `report/demo_override.txt`):
+
+```text
+--- turn 1 ---
+customer: I'm looking for Accessories Belts. Buckle closure
+agent:    Matching Accessories Belts — buckle closure. What material or fabric should I match?
+ask=other  pool=258  hard=111  withhold=True
+--- turn 2 ---
+customer: For that, what matters is: leather; 100% Leather.
+agent:    Matching Accessories Belts — buckle closure; leather; 100% leather. Any colour or print I should lock in?
+ask=other  pool=258  hard=22  withhold=True
+--- turn 3 ---
+customer: Actually, ignore my earlier preference. What I need is: leather.
+agent:    I'll follow the updated requirement. Matching Accessories Belts — buckle closure; leather; 100% leather. ...
+ask=other  hard=22  withhold=True  scope=referenced_preference_replace
+--- turn 4 ---
+customer: For that, what matters is: Imported; Buckle closure.
+agent:    ... Here are the closest matches so far.
+   1. B071X54486  Hide & Drink, Rustic Handmade Full Grain Leather Men's Belt  <= TARGET
+   2. B072M9PJ3H  find. Men's Leather Formal Belt
+   ...
+--- outcome ---
+HIT turn=4 rank=1        usage prompt=0 completion=0 on every turn
+```
+
+The list is withheld while the hard pool is wider than the gate (111 → 22 items)
+and appears once the fourth turn's evidence cuts it to 7 — the
+value-of-information rule doing exactly what the next section describes.
+
+### Verify the offline and 0-token claim, and the controller
+
+```bash
+python -m unittest tests.test_offline_guarantee -v   # every socket call patched to raise; the 4 documented sessions run on the mini catalog, 0 tokens, rank-1 hits
+python -m unittest tests.test_voi_controller -v      # rank() is identical with or without the controller; the turn-9 floor; the module reads no target and no budget
+```
+
+Both are part of the suite above and run in CI (`.github/workflows/ci.yml`),
+which installs nothing beyond Python.
 
 Additional evaluation entry points: `eval_contest.py --only public` scores the public
 200 and writes `results_contest_public.json`; `eval_holdout.py` scores our own
@@ -76,11 +125,17 @@ User turn
 ```
 
 The key insight is that **a small candidate pool does not mean the agent has enough
-information**. Slot-disclosure trajectories differ by scenario — Buying tends to go
+information**. Inside one shelf the finalists usually match every word the buyer has
+said; whatever would separate them is not in the input yet, so one more question is
+the only move that can change the rank — and the controller asks it exactly when that
+expected gain is worth the turn it costs. Slot-disclosure trajectories differ by scenario — Buying tends to go
 `1 → +2 → +1 → exhausted`, Browsing `0 → +2 → +2 → exhausted`. The controller decides
 using scenario, number of disclosed slots, whether "no additional preference" was
-already received, and pool size. It never inspects the remaining turn budget and never
-changes `rank()`.
+already received, and pool size. It never changes `rank()` — it lives in its own
+module, `starter/shopping_agent/contest_voi.py`, with no path to the ranker — and it
+does not optimize against the turn budget: the only use of the turn index is a floor
+at turn 9 of the 10 allowed, where it stops asking and recommends what it has. Both
+properties are tests (`tests/test_voi_controller.py`).
 
 MiniLM is applied as **late fusion only**: the conjunction produces a hard pool first,
 then `score += 0.1 × min-max(cosine)`. It never replaces popularity and never
@@ -175,6 +230,25 @@ class Agent:
 Only exact `parent_asin` equality counts as a hit, and only the first 10 valid unique
 IDs are scored.
 
+## After the deadline: one recall bug, one flag (`SHELF`, not the scored configuration)
+
+Reading the recall path after submission showed that `candidate_pool()` resolves the
+buyer's shelf exactly (200/200 public sessions) and then, whenever that shelf has fewer
+than 40 rows, pads it back up to ≥ 80 rows with catalog-wide lexical hits — burying the
+right shelf under decoys on 36 of 200 public sessions. `SHELF` is PUBLIC with that
+padding turned off (`pad_small_shelf=False`); nothing else changes.
+
+| Set | n | PUBLIC | SHELF | Hit@10 | Rank-1 |
+|---|---:|---:|---:|---|---:|
+| Public | 200 | 0.95125 | **0.95300** | 1.000 → 1.000 | 184 → 185 |
+| ID-disjoint holdout | 200 | 0.91175 | **0.91375** | 0.980 → 0.980 | 162 → 163 |
+| Random 800, 8 shards (mean) | 800 | 0.91467 | **0.92127** | 0.9725 → 0.9750 | 672 → 686 |
+
+8 of 8 shards improve, no hit is lost, MTTC falls on every set (public 2.75 → 2.70);
+over 1,200 sessions 63 change for the better and 2 for the worse. Details, the two
+regressions and the reproduction command: [`report/shelf.md`](report/shelf.md). The
+Devpost submission remains PUBLIC.
+
 ## Repository Layout
 
 ```text
@@ -185,6 +259,8 @@ evaluator/local_evaluator.py         official public-set simulator and scorer, u
 eval_contest.py                      scores the public 200 → results_contest_public.json
 eval_holdout.py                      scores our own ID-disjoint holdout 200
 eval_shard.py                        scores one shard of the random 800
+scripts/ab_variants.py               A/B two configurations, per-session diff (report/shelf.md)
+scripts/make_mini_catalog.py         builds data/catalog.mini.jsonl, the demo slice
 demo/run_demo.py                     replays one multi-turn session
 models/                              pinned MiniLM sidecar and its README
 report/                              architecture, ablations, robustness, freeze notes

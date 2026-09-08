@@ -1,65 +1,61 @@
-# ContestAgent 架构（计分路径）
+# ContestAgent architecture (the scored path)
 
-评估器加载的是 `starter.agent.Agent` → `ContestAgent` + `PUBLIC`。组仓库 `main` 上的单 Agent
-检索管线是另一条实现；本分支只吸收它的**状态分档、响应守卫、离线契约**，不吸收 BM25/FTS/标题覆盖。
+The evaluator loads `starter.agent.Agent` → `ContestAgent` + `PUBLIC`. The single-agent retrieval pipeline on the group repository's `main` is a different implementation; this branch takes only its **state scoping, response guard and offline contract**, not its BM25 / FTS / title coverage.
 
-## 五段：Evidence-Aware Conversational Search + VoI Stopping
+## Five stages: evidence-aware conversational search with value-of-information stopping
 
-核心不是「AND + 热度 + MiniLM」，而是 **证据不够就继续问 other，证据够了再 popularity-first 晚融合**。
+The core idea is not "conjunction + popularity + MiniLM". It is **keep asking `other` while the evidence is insufficient, and only then rank with popularity-first late fusion**.
 
 ```text
 User
  ↓
-[1] Dialogue State          槽位 / 分档 override / scenario
+[1] Dialogue state             slots / scoped override / scenario
  ↓
-[2] Exact Evidence AND      类目锁 + 逐字合取（空过滤跳过）
+[2] Exact-evidence AND         category lock + verbatim conjunction (an empty filter is skipped)
  ↓
-[3] Evidence / Progress Controller
-      ├ evidence insufficient → ask other（A / E1 / E2 / E3，各一次）
+[3] Evidence / progress controller (contest_voi.py)
+      ├ evidence insufficient → ask `other` (A / E1 / E2 / E3, each at most once)
       └ evidence sufficient   → recommend
                                    ↓
-[4] popularity-first late fusion   热度 1.0 + 精确行 0.35 + 短语 0.15 + MiniLM 0.1
-[5] 可选 listwise LLM              仅出表 n≤10，默认关
+[4] Popularity-first late fusion   popularity 1.0 + exact field line 0.35 + phrase 0.15 + MiniLM 0.1
+[5] Optional listwise LLM          only on a shortlist of n ≤ 10; off by default
 ```
 
-`pool≤5` 不等于信息充分。Buying 轨迹 `1→+2→+1→exhausted`，Browsing `0→+2→+2→exhausted`。Controller 用 **scenario + 已披露槽数 + 是否已收到 no_additional + 池大小**，不偷看 remain、不改 `rank()`。
+`pool ≤ 5` does not mean the information is sufficient. The Buying trajectory is `1 → +2 → +1 → exhausted`, Browsing `0 → +2 → +2 → exhausted`. The controller uses **scenario + number of disclosed slots + whether `no additional preference` has been received + pool size**. It never changes `rank()`, and it does not optimize against the turn budget: the only place the turn index enters is a floor — from turn 9 of the 10 allowed, every controller function returns "do not withhold" and the agent recommends what it has. `tests/test_voi_controller.py` asserts both properties.
 
-消融：RRF / BM25 / LLM reorder / catalog provenance / pop-head guard 都没有稳定过闸。涨分来自多拿真实 intent 槽：holdout **0.8981 → 0.8987（A）→ 0.9118（E123）**。
+Ablations: RRF, BM25, LLM reordering, catalog provenance and the popularity-head guard never cleared the gate consistently. The gains came from collecting more real intent slots: holdout **0.8981 → 0.8987 (A) → 0.9118 (E123)**.
 
-缺 MiniLM 权重或 LLM 密钥时 [4][5] 该项为 0，[1]–[3] 仍能跑完。**能跑 ≠ 分数等价**：无 MiniLM 时 Holdout Hit `0.980→0.975`（掉 `0090`）。VoI stop 不依赖 MiniLM。这符合 Track 4 范围内的 keyword/dense/hybrid + 会话状态 + 可选 LLM，且不依赖工业向量库或全模型训练。加载顺序与官方 Q&A 见 `report/freeze.md`、`models/README.md`。
+Without the MiniLM weights or an LLM key, the corresponding term in [4] / [5] is 0 and [1]–[3] still run to completion. **Runnable is not score-equivalent**: without MiniLM the holdout Hit drops `0.980 → 0.975` (session `0090` is lost). VoI stopping does not depend on MiniLM. This stays inside the Track 4 scope — keyword / dense / hybrid retrieval plus conversation state plus an optional LLM — without an industrial vector store or full model training. Load order and the official Q&A are in `report/freeze.md` and `models/README.md`.
 
-## 每轮
+## Per turn
 
 ```text
 reset(session_id, user_profile)
 respond(message, turn, top_k)
   parse_opening / parse_reply
   scoped override → ContestState
-  类目锁 → 逐字 AND（空过滤跳过）
-  VoI stop：池小但卡未耗尽则再问一轮 other；否则出表
-  热度 + 精确 feature/details 行 + 可选 MiniLM（泛约束跳过）
-  可选 listwise LLM 与当前序 RRF blend
+  category lock → verbatim AND (an empty filter is skipped)
+  VoI stop: pool small but the card not exhausted → ask `other` once more; otherwise recommend
+  popularity + exact feature / details line + optional MiniLM (skipped on generic constraints)
+  optional listwise LLM, RRF-blended with the current order
   contest_response.guard_response
 ```
 
-协议骨架不变：`ask_attribute` 永远是 `other`（模拟器只在这个槽上泄出 intent card 原文）、逐字 AND、`gate_size=5`、Override 前不出表、`dump_slots=4`。
+The protocol skeleton does not change: `ask_attribute` is always `other` (the simulator leaks the intent card verbatim only on that slot), verbatim AND, `gate_size=5`, no recommendation before an override can score, `dump_slots=4`.
 
-口头问题会带上已记住的类目/约束，并点名还缺的 typed 面（材料、颜色、尺寸…）；字段仍是 `other`，所以不会换成问 `color` 而丢掉长句。`distinctive_early_cap` 已实现（硬池 ≤10 且有非泛化词则出表），公开 MTTC 2.53→2.505，但 holdout MRR 0.774→0.758、总分 0.8845，**默认关闭**。
+The spoken question carries the remembered category / constraints and names the typed facet still missing (material, colour, size, …); the field stays `other`, so the agent never switches to asking `color` and loses the long sentence. `distinctive_early_cap` is implemented (recommend when the hard pool is ≤ 10 and contains a non-generic token): public MTTC 2.53 → 2.505, but holdout MRR 0.774 → 0.758, total 0.8845 — **off by default**.
 
-## 从 group `main` 吸收的部分
+## What was taken from the group `main`
 
-| 吸收 | 落点 | 刻意没搬 |
+| Taken | Where it landed | Deliberately not taken |
 |---|---|---|
-| Override 分档：referenced / attribute_replace / global_reset | `contest_dialogue.py`、`contest_slots.apply_override` | classmate 式整表 wipe；官方模板仍 decay+AND |
-| 响应合同守卫 | `contest_response.py` | FTS catalog、SQLite |
-| 缺模型权重=0（分数不等价）；sidecar → 缓存 → 允许时 Hub | `contest_dense.py` + `models/all-MiniLM-L6-v2` | DeepSeek / Qwen 默认路径；不换线上 embedding |
-| 诊断：`intent_scope` / `intent_epoch` / `superseded` | `last_diagnostics` | commit_policy 阈值堆 |
+| Override scopes: referenced / attribute_replace / global_reset | `contest_dialogue.py`, `contest_slots.apply_override` | the classmate-style whole-table wipe; the official template still decays + ANDs |
+| Response-contract guard | `contest_response.py` | FTS catalog, SQLite |
+| Missing model weights → 0 (not score-equivalent); sidecar → cache → Hub when allowed | `contest_dense.py` + `models/all-MiniLM-L6-v2` | the DeepSeek / Qwen default path; no hosted embedding swap |
+| Diagnostics: `intent_scope` / `intent_epoch` / `superseded` | `last_diagnostics` | the pile of commit-policy thresholds |
 
-官方模拟器 override 原文是 `Actually, ignore my earlier preference. What I need is: …`，scope 为
-`referenced_preference_replace`：首轮槽位权重打到 0.5，新值加入硬 AND。`change the color to blue`
-才作废旧颜色；`forget everything` 才清空约束并保留类目。
+The official simulator's override text is `Actually, ignore my earlier preference. What I need is: …`, scope `referenced_preference_replace`: the first-turn slot weight drops to 0.5 and the new value joins the hard AND. Only `change the color to blue` retires the old colour; only `forget everything` clears the constraints while keeping the category.
 
-## 不要改的排序默认
+## Ranking defaults not to touch
 
-`PUBLIC` 的 `w_title=0`、`w_popularity=1.0`、`w_dense=0.1` + `dense_skip_generic`，硬池 ≤6 且已跑 MiniLM 时再加 `w_dense_tiny=0.12`，精确 feature/details 行 `w_field=0.35`，区分项整句标题 `w_phrase=0.15`。MiniLM **晚融合**：先 AND 出硬池，再 `score += 0.1 * min-max(cosine)`，不替代热度、不参与召回。group `main` 的
-BM25 0.36 / 标题 0.12 / 热度 0.03 在公开集上 MRR 更差，禁止作为默认。
+`PUBLIC` has `w_title=0`, `w_popularity=1.0`, `w_dense=0.1` + `dense_skip_generic`, an extra `w_dense_tiny=0.12` when the hard pool is ≤ 6 and MiniLM has run, exact feature / details line `w_field=0.35`, whole-title phrase on a distinctive item `w_phrase=0.15`. MiniLM is **late fusion**: the AND produces the hard pool first, then `score += 0.1 × min-max(cosine)`; it never replaces popularity and never takes part in recall. The group `main` weights (BM25 0.36 / title 0.12 / popularity 0.03) score a worse MRR on the public set and must not become the default.
