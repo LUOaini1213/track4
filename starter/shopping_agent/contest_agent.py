@@ -16,13 +16,15 @@ from .contest_index import ContestIndex
 from .contest_llm import listwise_rerank
 from .contest_rank import (
     candidate_pool,
-    defer_for_ambiguity,
-    defer_for_overlap,
-    defer_for_progress,
     hard_pool,
     pad,
     rank,
     rrf_blend_ranks,
+)
+from .contest_voi import (
+    defer_for_ambiguity,
+    defer_for_overlap,
+    defer_for_progress,
     should_withhold,
 )
 from .contest_response import guard_response
