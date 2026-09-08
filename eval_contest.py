@@ -14,7 +14,7 @@ from pathlib import Path
 
 from evaluator.local_evaluator import catalog_index, evaluate, load_jsonl
 from starter.shopping_agent.contest_agent import ContestAgent
-from starter.shopping_agent.contest_config import CLASSMATE, HYBRID, KHANNA, PUBLIC, ContestConfig
+from starter.shopping_agent.contest_config import CLASSMATE, HYBRID, KHANNA, PUBLIC, SHELF, ContestConfig
 from starter.shopping_agent.contest_index import ContestIndex
 
 
@@ -23,6 +23,7 @@ VARIANTS: list[tuple[str, ContestConfig]] = [
     ("contest_khanna", KHANNA),
     ("contest_hybrid", HYBRID),
     ("contest_classmate_gate", CLASSMATE),
+    ("contest_shelf", SHELF),
 ]
 
 

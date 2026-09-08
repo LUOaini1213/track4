@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 
 @dataclass(frozen=True)
@@ -150,6 +150,11 @@ class ContestConfig:
     override_decay: float = 0.5
     observed_boost: float = 0.45
     min_candidates: int = 40
+    # When the resolved shelf holds fewer than min_candidates rows, the scored
+    # PUBLIC path pads it back up to >= 80 rows with catalog-wide lexical hits.
+    # False keeps the exact shelf as the whole candidate set. Default True
+    # reproduces PUBLIC byte-for-byte; SHELF below is the v2 experiment.
+    pad_small_shelf: bool = True
     global_fallback_limit: int = 400
 
 
@@ -241,3 +246,8 @@ PUBLIC = ContestConfig(
     llm_listwise=False,
     llm_pool_limit=10,
 )
+
+# v2 experiment (post-deadline, not the scored configuration): identical to
+# PUBLIC except that a resolved shelf is never diluted with catalog-wide
+# lexical hits when it is small. PUBLIC itself is unchanged.
+SHELF = replace(PUBLIC, pad_small_shelf=False)

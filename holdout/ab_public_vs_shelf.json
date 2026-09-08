@@ -1,0 +1,1827 @@
+{
+ "a": "PUBLIC",
+ "b": "SHELF",
+ "catalog": "data/catalog.jsonl",
+ "datasets": [
+  {
+   "dataset": "data/public_set.jsonl",
+   "n": 200,
+   "PUBLIC": {
+    "hit_rate_at_10": 1.0,
+    "mrr": 0.954167,
+    "mttc": 2.75,
+    "efficiency": 0.825,
+    "recommended_technical_score": 0.95125
+   },
+   "SHELF": {
+    "hit_rate_at_10": 1.0,
+    "mrr": 0.956667,
+    "mttc": 2.7,
+    "efficiency": 0.83,
+    "recommended_technical_score": 0.953
+   },
+   "scenario_metrics": {
+    "PUBLIC": {
+     "boundary": {
+      "sample_count": 10,
+      "hit_rate_at_10": 1.0,
+      "mrr": 1.0,
+      "mttc": 3.5
+     },
+     "browsing": {
+      "sample_count": 80,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.935417,
+      "mttc": 2.5875
+     },
+     "buying": {
+      "sample_count": 80,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.970833,
+      "mttc": 2.4625
+     },
+     "intent_override": {
+      "sample_count": 30,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.944444,
+      "mttc": 3.7
+     }
+    },
+    "SHELF": {
+     "boundary": {
+      "sample_count": 10,
+      "hit_rate_at_10": 1.0,
+      "mrr": 1.0,
+      "mttc": 3.5
+     },
+     "browsing": {
+      "sample_count": 80,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.941667,
+      "mttc": 2.525
+     },
+     "buying": {
+      "sample_count": 80,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.970833,
+      "mttc": 2.4
+     },
+     "intent_override": {
+      "sample_count": 30,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.944444,
+      "mttc": 3.7
+     }
+    }
+   },
+   "tokens": {
+    "PUBLIC": {
+     "prompt_tokens": 0,
+     "completion_tokens": 0,
+     "total_tokens": 0
+    },
+    "SHELF": {
+     "prompt_tokens": 0,
+     "completion_tokens": 0,
+     "total_tokens": 0
+    }
+   },
+   "rank1": {
+    "PUBLIC": 184,
+    "SHELF": 185
+   },
+   "delta_score": 0.00175,
+   "changed_sessions": [
+    {
+     "sample_id": "public_0037",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 2,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     }
+    },
+    {
+     "sample_id": "public_0039",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "public_0053",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "public_0065",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "public_0077",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 1
+     }
+    },
+    {
+     "sample_id": "public_0101",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "public_0147",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 1
+     }
+    },
+    {
+     "sample_id": "public_0148",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "public_0176",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "public_0190",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    }
+   ]
+  },
+  {
+   "dataset": "holdout/holdout_200.jsonl",
+   "n": 200,
+   "PUBLIC": {
+    "hit_rate_at_10": 0.98,
+    "mrr": 0.864845,
+    "mttc": 2.885,
+    "efficiency": 0.8115,
+    "recommended_technical_score": 0.911753
+   },
+   "SHELF": {
+    "hit_rate_at_10": 0.98,
+    "mrr": 0.868179,
+    "mttc": 2.835,
+    "efficiency": 0.8165,
+    "recommended_technical_score": 0.913754
+   },
+   "scenario_metrics": {
+    "PUBLIC": {
+     "boundary": {
+      "sample_count": 10,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.866667,
+      "mttc": 3.8
+     },
+     "browsing": {
+      "sample_count": 80,
+      "hit_rate_at_10": 0.9875,
+      "mrr": 0.882321,
+      "mttc": 2.725
+     },
+     "buying": {
+      "sample_count": 80,
+      "hit_rate_at_10": 0.9875,
+      "mrr": 0.877292,
+      "mttc": 2.45
+     },
+     "intent_override": {
+      "sample_count": 30,
+      "hit_rate_at_10": 0.933333,
+      "mrr": 0.784444,
+      "mttc": 4.166667
+     }
+    },
+    "SHELF": {
+     "boundary": {
+      "sample_count": 10,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.866667,
+      "mttc": 3.8
+     },
+     "browsing": {
+      "sample_count": 80,
+      "hit_rate_at_10": 0.9875,
+      "mrr": 0.882321,
+      "mttc": 2.6625
+     },
+     "buying": {
+      "sample_count": 80,
+      "hit_rate_at_10": 0.9875,
+      "mrr": 0.885625,
+      "mttc": 2.3875
+     },
+     "intent_override": {
+      "sample_count": 30,
+      "hit_rate_at_10": 0.933333,
+      "mrr": 0.784444,
+      "mttc": 4.166667
+     }
+    }
+   },
+   "tokens": {
+    "PUBLIC": {
+     "prompt_tokens": 0,
+     "completion_tokens": 0,
+     "total_tokens": 0
+    },
+    "SHELF": {
+     "prompt_tokens": 0,
+     "completion_tokens": 0,
+     "total_tokens": 0
+    }
+   },
+   "rank1": {
+    "PUBLIC": 162,
+    "SHELF": 163
+   },
+   "delta_score": 0.002001,
+   "changed_sessions": [
+    {
+     "sample_id": "holdout_0016",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 3,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     }
+    },
+    {
+     "sample_id": "holdout_0030",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "holdout_0041",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "holdout_0050",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "holdout_0060",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 1
+     }
+    },
+    {
+     "sample_id": "holdout_0069",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "holdout_0072",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "holdout_0111",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "holdout_0123",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "holdout_0124",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 1
+     }
+    },
+    {
+     "sample_id": "holdout_0146",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 1
+     }
+    }
+   ]
+  },
+  {
+   "dataset": "holdout/shards/shard_0.jsonl",
+   "n": 100,
+   "PUBLIC": {
+    "hit_rate_at_10": 0.96,
+    "mrr": 0.872619,
+    "mttc": 3.06,
+    "efficiency": 0.794,
+    "recommended_technical_score": 0.900586
+   },
+   "SHELF": {
+    "hit_rate_at_10": 0.97,
+    "mrr": 0.890952,
+    "mttc": 2.95,
+    "efficiency": 0.805,
+    "recommended_technical_score": 0.913286
+   },
+   "scenario_metrics": {
+    "PUBLIC": {
+     "boundary": {
+      "sample_count": 7,
+      "hit_rate_at_10": 0.857143,
+      "mrr": 0.785714,
+      "mttc": 4.428571
+     },
+     "browsing": {
+      "sample_count": 34,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.892157,
+      "mttc": 2.705882
+     },
+     "buying": {
+      "sample_count": 42,
+      "hit_rate_at_10": 0.928571,
+      "mrr": 0.87585,
+      "mttc": 2.904762
+     },
+     "intent_override": {
+      "sample_count": 17,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.861345,
+      "mttc": 3.588235
+     }
+    },
+    "SHELF": {
+     "boundary": {
+      "sample_count": 7,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.928571,
+      "mttc": 3.285714
+     },
+     "browsing": {
+      "sample_count": 34,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.916667,
+      "mttc": 2.617647
+     },
+     "buying": {
+      "sample_count": 42,
+      "hit_rate_at_10": 0.928571,
+      "mrr": 0.87585,
+      "mttc": 2.904762
+     },
+     "intent_override": {
+      "sample_count": 17,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.861345,
+      "mttc": 3.588235
+     }
+    }
+   },
+   "tokens": {
+    "PUBLIC": {
+     "prompt_tokens": 0,
+     "completion_tokens": 0,
+     "total_tokens": 0
+    },
+    "SHELF": {
+     "prompt_tokens": 0,
+     "completion_tokens": 0,
+     "total_tokens": 0
+    }
+   },
+   "rank1": {
+    "PUBLIC": 82,
+    "SHELF": 84
+   },
+   "delta_score": 0.0127,
+   "changed_sessions": [
+    {
+     "sample_id": "rand800_0059",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "rand800_0061",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 6,
+      "first_hit_turn": 4
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     }
+    },
+    {
+     "sample_id": "rand800_0068",
+     "scenario": "boundary",
+     "PUBLIC": {
+      "hit": false,
+      "best_rank": null,
+      "first_hit_turn": null
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     }
+    },
+    {
+     "sample_id": "rand800_0080",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    }
+   ]
+  },
+  {
+   "dataset": "holdout/shards/shard_1.jsonl",
+   "n": 100,
+   "PUBLIC": {
+    "hit_rate_at_10": 1.0,
+    "mrr": 0.916583,
+    "mttc": 2.73,
+    "efficiency": 0.827,
+    "recommended_technical_score": 0.940375
+   },
+   "SHELF": {
+    "hit_rate_at_10": 1.0,
+    "mrr": 0.9425,
+    "mttc": 2.62,
+    "efficiency": 0.838,
+    "recommended_technical_score": 0.95035
+   },
+   "scenario_metrics": {
+    "PUBLIC": {
+     "boundary": {
+      "sample_count": 8,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.754167,
+      "mttc": 3.875
+     },
+     "browsing": {
+      "sample_count": 36,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.949074,
+      "mttc": 2.694444
+     },
+     "buying": {
+      "sample_count": 44,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.89678,
+      "mttc": 2.363636
+     },
+     "intent_override": {
+      "sample_count": 12,
+      "hit_rate_at_10": 1.0,
+      "mrr": 1.0,
+      "mttc": 3.416667
+     }
+    },
+    "SHELF": {
+     "boundary": {
+      "sample_count": 8,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.854167,
+      "mttc": 3.75
+     },
+     "browsing": {
+      "sample_count": 36,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.94213,
+      "mttc": 2.583333
+     },
+     "buying": {
+      "sample_count": 44,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.943182,
+      "mttc": 2.227273
+     },
+     "intent_override": {
+      "sample_count": 12,
+      "hit_rate_at_10": 1.0,
+      "mrr": 1.0,
+      "mttc": 3.416667
+     }
+    }
+   },
+   "tokens": {
+    "PUBLIC": {
+     "prompt_tokens": 0,
+     "completion_tokens": 0,
+     "total_tokens": 0
+    },
+    "SHELF": {
+     "prompt_tokens": 0,
+     "completion_tokens": 0,
+     "total_tokens": 0
+    }
+   },
+   "rank1": {
+    "PUBLIC": 86,
+    "SHELF": 90
+   },
+   "delta_score": 0.009975,
+   "changed_sessions": [
+    {
+     "sample_id": "rand800_0102",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "rand800_0110",
+     "scenario": "boundary",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 5,
+      "first_hit_turn": 4
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 4
+     }
+    },
+    {
+     "sample_id": "rand800_0131",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 2,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "rand800_0135",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 2,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "rand800_0136",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "rand800_0139",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 1
+     }
+    },
+    {
+     "sample_id": "rand800_0143",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 8,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     }
+    },
+    {
+     "sample_id": "rand800_0151",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "rand800_0156",
+     "scenario": "boundary",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 4
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     }
+    },
+    {
+     "sample_id": "rand800_0157",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 4,
+      "first_hit_turn": 1
+     }
+    },
+    {
+     "sample_id": "rand800_0162",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 3,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 1
+     }
+    },
+    {
+     "sample_id": "rand800_0199",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    }
+   ]
+  },
+  {
+   "dataset": "holdout/shards/shard_2.jsonl",
+   "n": 100,
+   "PUBLIC": {
+    "hit_rate_at_10": 0.94,
+    "mrr": 0.878111,
+    "mttc": 3.1,
+    "efficiency": 0.79,
+    "recommended_technical_score": 0.891433
+   },
+   "SHELF": {
+    "hit_rate_at_10": 0.94,
+    "mrr": 0.898111,
+    "mttc": 3.02,
+    "efficiency": 0.798,
+    "recommended_technical_score": 0.899033
+   },
+   "scenario_metrics": {
+    "PUBLIC": {
+     "boundary": {
+      "sample_count": 3,
+      "hit_rate_at_10": 1.0,
+      "mrr": 1.0,
+      "mttc": 3.333333
+     },
+     "browsing": {
+      "sample_count": 35,
+      "hit_rate_at_10": 0.885714,
+      "mrr": 0.828571,
+      "mttc": 3.571429
+     },
+     "buying": {
+      "sample_count": 49,
+      "hit_rate_at_10": 0.979592,
+      "mrr": 0.920635,
+      "mttc": 2.44898
+     },
+     "intent_override": {
+      "sample_count": 13,
+      "hit_rate_at_10": 0.923077,
+      "mrr": 0.823077,
+      "mttc": 4.230769
+     }
+    },
+    "SHELF": {
+     "boundary": {
+      "sample_count": 3,
+      "hit_rate_at_10": 1.0,
+      "mrr": 1.0,
+      "mttc": 3.333333
+     },
+     "browsing": {
+      "sample_count": 35,
+      "hit_rate_at_10": 0.885714,
+      "mrr": 0.871429,
+      "mttc": 3.514286
+     },
+     "buying": {
+      "sample_count": 49,
+      "hit_rate_at_10": 0.979592,
+      "mrr": 0.930839,
+      "mttc": 2.326531
+     },
+     "intent_override": {
+      "sample_count": 13,
+      "hit_rate_at_10": 0.923077,
+      "mrr": 0.823077,
+      "mttc": 4.230769
+     }
+    }
+   },
+   "tokens": {
+    "PUBLIC": {
+     "prompt_tokens": 0,
+     "completion_tokens": 0,
+     "total_tokens": 0
+    },
+    "SHELF": {
+     "prompt_tokens": 0,
+     "completion_tokens": 0,
+     "total_tokens": 0
+    }
+   },
+   "rank1": {
+    "PUBLIC": 84,
+    "SHELF": 87
+   },
+   "delta_score": 0.0076,
+   "changed_sessions": [
+    {
+     "sample_id": "rand800_0232",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 3,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     }
+    },
+    {
+     "sample_id": "rand800_0235",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 6,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     }
+    },
+    {
+     "sample_id": "rand800_0258",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "rand800_0264",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "rand800_0285",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 1
+     }
+    },
+    {
+     "sample_id": "rand800_0288",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "rand800_0298",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 2,
+      "first_hit_turn": 5
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "rand800_0299",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 1
+     }
+    }
+   ]
+  },
+  {
+   "dataset": "holdout/shards/shard_3.jsonl",
+   "n": 100,
+   "PUBLIC": {
+    "hit_rate_at_10": 0.96,
+    "mrr": 0.864889,
+    "mttc": 3.02,
+    "efficiency": 0.798,
+    "recommended_technical_score": 0.899067
+   },
+   "SHELF": {
+    "hit_rate_at_10": 0.97,
+    "mrr": 0.891278,
+    "mttc": 2.91,
+    "efficiency": 0.809,
+    "recommended_technical_score": 0.914183
+   },
+   "scenario_metrics": {
+    "PUBLIC": {
+     "boundary": {
+      "sample_count": 2,
+      "hit_rate_at_10": 1.0,
+      "mrr": 1.0,
+      "mttc": 4.0
+     },
+     "browsing": {
+      "sample_count": 39,
+      "hit_rate_at_10": 0.897436,
+      "mrr": 0.823077,
+      "mttc": 3.410256
+     },
+     "buying": {
+      "sample_count": 37,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.888889,
+      "mttc": 2.243243
+     },
+     "intent_override": {
+      "sample_count": 22,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.886364,
+      "mttc": 3.545455
+     }
+    },
+    "SHELF": {
+     "boundary": {
+      "sample_count": 2,
+      "hit_rate_at_10": 1.0,
+      "mrr": 1.0,
+      "mttc": 3.0
+     },
+     "browsing": {
+      "sample_count": 39,
+      "hit_rate_at_10": 0.923077,
+      "mrr": 0.867949,
+      "mttc": 3.179487
+     },
+     "buying": {
+      "sample_count": 37,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.912913,
+      "mttc": 2.243243
+     },
+     "intent_override": {
+      "sample_count": 22,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.886364,
+      "mttc": 3.545455
+     }
+    }
+   },
+   "tokens": {
+    "PUBLIC": {
+     "prompt_tokens": 0,
+     "completion_tokens": 0,
+     "total_tokens": 0
+    },
+    "SHELF": {
+     "prompt_tokens": 0,
+     "completion_tokens": 0,
+     "total_tokens": 0
+    }
+   },
+   "rank1": {
+    "PUBLIC": 82,
+    "SHELF": 85
+   },
+   "delta_score": 0.015116,
+   "changed_sessions": [
+    {
+     "sample_id": "rand800_0322",
+     "scenario": "boundary",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 4
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     }
+    },
+    {
+     "sample_id": "rand800_0324",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 4,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     }
+    },
+    {
+     "sample_id": "rand800_0328",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": false,
+      "best_rank": null,
+      "first_hit_turn": null
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     }
+    },
+    {
+     "sample_id": "rand800_0331",
+     "scenario": "boundary",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 4
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     }
+    },
+    {
+     "sample_id": "rand800_0379",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "rand800_0388",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 9,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     }
+    }
+   ]
+  },
+  {
+   "dataset": "holdout/shards/shard_4.jsonl",
+   "n": 100,
+   "PUBLIC": {
+    "hit_rate_at_10": 0.97,
+    "mrr": 0.907,
+    "mttc": 2.96,
+    "efficiency": 0.804,
+    "recommended_technical_score": 0.9179
+   },
+   "SHELF": {
+    "hit_rate_at_10": 0.97,
+    "mrr": 0.9145,
+    "mttc": 2.93,
+    "efficiency": 0.807,
+    "recommended_technical_score": 0.92075
+   },
+   "scenario_metrics": {
+    "PUBLIC": {
+     "boundary": {
+      "sample_count": 6,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.875,
+      "mttc": 3.5
+     },
+     "browsing": {
+      "sample_count": 45,
+      "hit_rate_at_10": 0.933333,
+      "mrr": 0.876667,
+      "mttc": 3.244444
+     },
+     "buying": {
+      "sample_count": 37,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.932432,
+      "mttc": 2.297297
+     },
+     "intent_override": {
+      "sample_count": 12,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.958333,
+      "mttc": 3.666667
+     }
+    },
+    "SHELF": {
+     "boundary": {
+      "sample_count": 6,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.875,
+      "mttc": 3.5
+     },
+     "browsing": {
+      "sample_count": 45,
+      "hit_rate_at_10": 0.933333,
+      "mrr": 0.893333,
+      "mttc": 3.177778
+     },
+     "buying": {
+      "sample_count": 37,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.932432,
+      "mttc": 2.297297
+     },
+     "intent_override": {
+      "sample_count": 12,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.958333,
+      "mttc": 3.666667
+     }
+    }
+   },
+   "tokens": {
+    "PUBLIC": {
+     "prompt_tokens": 0,
+     "completion_tokens": 0,
+     "total_tokens": 0
+    },
+    "SHELF": {
+     "prompt_tokens": 0,
+     "completion_tokens": 0,
+     "total_tokens": 0
+    }
+   },
+   "rank1": {
+    "PUBLIC": 87,
+    "SHELF": 88
+   },
+   "delta_score": 0.00285,
+   "changed_sessions": [
+    {
+     "sample_id": "rand800_0456",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 4,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     }
+    },
+    {
+     "sample_id": "rand800_0461",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 1
+     }
+    },
+    {
+     "sample_id": "rand800_0473",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    }
+   ]
+  },
+  {
+   "dataset": "holdout/shards/shard_5.jsonl",
+   "n": 100,
+   "PUBLIC": {
+    "hit_rate_at_10": 0.99,
+    "mrr": 0.908667,
+    "mttc": 2.81,
+    "efficiency": 0.819,
+    "recommended_technical_score": 0.9314
+   },
+   "SHELF": {
+    "hit_rate_at_10": 0.99,
+    "mrr": 0.910333,
+    "mttc": 2.79,
+    "efficiency": 0.821,
+    "recommended_technical_score": 0.9323
+   },
+   "scenario_metrics": {
+    "PUBLIC": {
+     "boundary": {
+      "sample_count": 4,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.875,
+      "mttc": 3.5
+     },
+     "browsing": {
+      "sample_count": 47,
+      "hit_rate_at_10": 0.978723,
+      "mrr": 0.862411,
+      "mttc": 2.87234
+     },
+     "buying": {
+      "sample_count": 35,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.938095,
+      "mttc": 2.4
+     },
+     "intent_override": {
+      "sample_count": 14,
+      "hit_rate_at_10": 1.0,
+      "mrr": 1.0,
+      "mttc": 3.428571
+     }
+    },
+    "SHELF": {
+     "boundary": {
+      "sample_count": 4,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.875,
+      "mttc": 3.5
+     },
+     "browsing": {
+      "sample_count": 47,
+      "hit_rate_at_10": 0.978723,
+      "mrr": 0.865957,
+      "mttc": 2.851064
+     },
+     "buying": {
+      "sample_count": 35,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.938095,
+      "mttc": 2.371429
+     },
+     "intent_override": {
+      "sample_count": 14,
+      "hit_rate_at_10": 1.0,
+      "mrr": 1.0,
+      "mttc": 3.428571
+     }
+    }
+   },
+   "tokens": {
+    "PUBLIC": {
+     "prompt_tokens": 0,
+     "completion_tokens": 0,
+     "total_tokens": 0
+    },
+    "SHELF": {
+     "prompt_tokens": 0,
+     "completion_tokens": 0,
+     "total_tokens": 0
+    }
+   },
+   "rank1": {
+    "PUBLIC": 86,
+    "SHELF": 86
+   },
+   "delta_score": 0.0009,
+   "changed_sessions": [
+    {
+     "sample_id": "rand800_0557",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 3,
+      "first_hit_turn": 4
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 2,
+      "first_hit_turn": 4
+     }
+    },
+    {
+     "sample_id": "rand800_0573",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "rand800_0584",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    }
+   ]
+  },
+  {
+   "dataset": "holdout/shards/shard_6.jsonl",
+   "n": 100,
+   "PUBLIC": {
+    "hit_rate_at_10": 1.0,
+    "mrr": 0.890083,
+    "mttc": 2.7,
+    "efficiency": 0.83,
+    "recommended_technical_score": 0.933025
+   },
+   "SHELF": {
+    "hit_rate_at_10": 1.0,
+    "mrr": 0.897583,
+    "mttc": 2.66,
+    "efficiency": 0.834,
+    "recommended_technical_score": 0.936075
+   },
+   "scenario_metrics": {
+    "PUBLIC": {
+     "boundary": {
+      "sample_count": 5,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.9,
+      "mttc": 4.0
+     },
+     "browsing": {
+      "sample_count": 48,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.91059,
+      "mttc": 2.604167
+     },
+     "buying": {
+      "sample_count": 31,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.908602,
+      "mttc": 2.16129
+     },
+     "intent_override": {
+      "sample_count": 16,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.789583,
+      "mttc": 3.625
+     }
+    },
+    "SHELF": {
+     "boundary": {
+      "sample_count": 5,
+      "hit_rate_at_10": 1.0,
+      "mrr": 1.0,
+      "mttc": 3.8
+     },
+     "browsing": {
+      "sample_count": 48,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.915799,
+      "mttc": 2.541667
+     },
+     "buying": {
+      "sample_count": 31,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.908602,
+      "mttc": 2.16129
+     },
+     "intent_override": {
+      "sample_count": 16,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.789583,
+      "mttc": 3.625
+     }
+    }
+   },
+   "tokens": {
+    "PUBLIC": {
+     "prompt_tokens": 0,
+     "completion_tokens": 0,
+     "total_tokens": 0
+    },
+    "SHELF": {
+     "prompt_tokens": 0,
+     "completion_tokens": 0,
+     "total_tokens": 0
+    }
+   },
+   "rank1": {
+    "PUBLIC": 83,
+    "SHELF": 84
+   },
+   "delta_score": 0.00305,
+   "changed_sessions": [
+    {
+     "sample_id": "rand800_0646",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 4,
+      "first_hit_turn": 4
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     }
+    },
+    {
+     "sample_id": "rand800_0663",
+     "scenario": "boundary",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 4
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     }
+    },
+    {
+     "sample_id": "rand800_0676",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "rand800_0683",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 2,
+      "first_hit_turn": 1
+     }
+    },
+    {
+     "sample_id": "rand800_0697",
+     "scenario": "boundary",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 2,
+      "first_hit_turn": 4
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 4
+     }
+    }
+   ]
+  },
+  {
+   "dataset": "holdout/shards/shard_7.jsonl",
+   "n": 100,
+   "PUBLIC": {
+    "hit_rate_at_10": 0.96,
+    "mrr": 0.86869,
+    "mttc": 2.85,
+    "efficiency": 0.815,
+    "recommended_technical_score": 0.903607
+   },
+   "SHELF": {
+    "hit_rate_at_10": 0.96,
+    "mrr": 0.86869,
+    "mttc": 2.82,
+    "efficiency": 0.818,
+    "recommended_technical_score": 0.904207
+   },
+   "scenario_metrics": {
+    "PUBLIC": {
+     "boundary": {
+      "sample_count": 5,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.74,
+      "mttc": 3.6
+     },
+     "browsing": {
+      "sample_count": 36,
+      "hit_rate_at_10": 0.944444,
+      "mrr": 0.867857,
+      "mttc": 3.055556
+     },
+     "buying": {
+      "sample_count": 45,
+      "hit_rate_at_10": 0.955556,
+      "mrr": 0.872963,
+      "mttc": 2.377778
+     },
+     "intent_override": {
+      "sample_count": 14,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.903061,
+      "mttc": 3.571429
+     }
+    },
+    "SHELF": {
+     "boundary": {
+      "sample_count": 5,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.74,
+      "mttc": 3.6
+     },
+     "browsing": {
+      "sample_count": 36,
+      "hit_rate_at_10": 0.944444,
+      "mrr": 0.867857,
+      "mttc": 3.027778
+     },
+     "buying": {
+      "sample_count": 45,
+      "hit_rate_at_10": 0.955556,
+      "mrr": 0.872963,
+      "mttc": 2.333333
+     },
+     "intent_override": {
+      "sample_count": 14,
+      "hit_rate_at_10": 1.0,
+      "mrr": 0.903061,
+      "mttc": 3.571429
+     }
+    }
+   },
+   "tokens": {
+    "PUBLIC": {
+     "prompt_tokens": 0,
+     "completion_tokens": 0,
+     "total_tokens": 0
+    },
+    "SHELF": {
+     "prompt_tokens": 0,
+     "completion_tokens": 0,
+     "total_tokens": 0
+    }
+   },
+   "rank1": {
+    "PUBLIC": 82,
+    "SHELF": 82
+   },
+   "delta_score": 0.0006,
+   "changed_sessions": [
+    {
+     "sample_id": "rand800_0757",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 1
+     }
+    },
+    {
+     "sample_id": "rand800_0767",
+     "scenario": "browsing",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 3
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     }
+    },
+    {
+     "sample_id": "rand800_0776",
+     "scenario": "buying",
+     "PUBLIC": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 2
+     },
+     "SHELF": {
+      "hit": true,
+      "best_rank": 1,
+      "first_hit_turn": 1
+     }
+    }
+   ]
+  }
+ ]
+}
