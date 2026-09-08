@@ -1,6 +1,12 @@
-# ContestAgent PUBLIC scoring path uses the Python standard library only
-# when MiniLM weights are absent (dense=0). That path is runnable, not
-# score-equivalent (holdout Hit 0.980→0.975). Champion MiniLM:
-#   python scripts/vendor_minilm.py
-# torch
-# transformers
+# The scored path (starter.agent.Agent -> ContestAgent PUBLIC) runs on the
+# Python standard library alone: no package below is needed to run the
+# evaluator, the demo or the tests. That path is runnable but NOT
+# score-equivalent (holdout Hit 0.980 -> 0.975 without the dense term).
+#
+# The champion numbers use MiniLM late fusion, which needs the two packages
+# below plus the pinned weights:
+#     pip install -r requirements.txt
+#     python scripts/vendor_minilm.py      # pinned revision -> models/all-MiniLM-L6-v2
+# Measured with torch 2.7.1 and transformers 5.15.1 on Python 3.11.5.
+torch>=2.1
+transformers>=4.40

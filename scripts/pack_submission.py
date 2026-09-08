@@ -41,6 +41,7 @@ INCLUDE_FILES = [
     "models/README.md",
     "scripts/vendor_minilm.py",
     "data/public_set.jsonl",
+    "data/catalog.mini.jsonl",
     "data/README.md",
 ]
 

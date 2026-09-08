@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import re
 import subprocess
 import sys
 import unittest
@@ -42,7 +43,10 @@ class SubmissionPackageTests(unittest.TestCase):
         self.assertNotIn("11069c6", srt)
         self.assertNotIn("11069c6", youtube)
         self.assertIn("reproducible locally", builder)
-        self.assertIn("reproducible locally", srt)
+        # The final narration dropped the "reproducible locally" tagline; the
+        # captions must still carry the offline claim and no commit SHA.
+        self.assertIn("runs offline on commodity CPU", srt)
+        self.assertIsNone(re.search(r"[0-9a-f]{7,40}", srt))
         self.assertIn("reproducible locally", youtube)
 
     def test_zip_checklist_requires_minilm_and_excludes_holdout_jsonl(self) -> None:

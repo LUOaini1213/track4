@@ -14,11 +14,11 @@ class DemoReplayTests(unittest.TestCase):
         samples = [
             {"sample_id": "public_0001", "scenario_type": "buying"},
             {"sample_id": "public_0002", "scenario_type": "intent_override"},
-            {"sample_id": "public_0006", "scenario_type": "browsing"},
+            {"sample_id": "public_0007", "scenario_type": "browsing"},
             {"sample_id": "public_0035", "scenario_type": "boundary"},
         ]
         self.assertEqual(pick_sample(samples, "public_0002", None)["sample_id"], "public_0002")
-        self.assertEqual(pick_sample(samples, None, "browsing")["sample_id"], "public_0006")
+        self.assertEqual(pick_sample(samples, None, "browsing")["sample_id"], "public_0007")
         self.assertEqual(pick_sample(samples, None, "intent_override")["sample_id"], "public_0002")
 
     def test_run_session_hits_buying_target_and_reports_zero_tokens(self) -> None:

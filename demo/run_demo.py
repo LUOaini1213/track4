@@ -35,7 +35,10 @@ from starter.agent import Agent  # noqa: E402
 SCENARIO_DEFAULTS = {
     "buying": "public_0001",
     "intent_override": "public_0002",
-    "browsing": "public_0006",
+    # public_0007: its shelf (519 rows) is above min_candidates, so the replay
+    # is pool-identical on data/catalog.mini.jsonl; public_0006 (13-row shelf)
+    # gets padded from the whole catalog and is not.
+    "browsing": "public_0007",
     "boundary": "public_0035",
 }
 
@@ -159,6 +162,20 @@ def main() -> None:
         if line.strip()
     ]
     sample = pick_sample(samples, args.session, args.scenario)
+    catalog = Path(args.catalog)
+    if not catalog.is_file():
+        mini = REPO / "data" / "catalog.mini.jsonl"
+        if not mini.is_file():
+            raise SystemExit(
+                f"catalog not found: {catalog}. Download catalog.jsonl.gz from the "
+                "GitHub Release (see data/README.md), or run scripts/make_mini_catalog.py."
+            )
+        print(
+            f"[demo] {catalog.name} not found; replaying on the bundled slice {mini.name}. "
+            "The documented demo sessions see the same shelf as on the full catalog; "
+            "other sessions are not pool-equivalent. Scores on the slice mean nothing."
+        )
+        args.catalog = str(mini)
     started = time.perf_counter()
     agent = Agent(args.catalog)
     _, categories, products = catalog_index(args.catalog)
