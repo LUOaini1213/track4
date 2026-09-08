@@ -1,5 +1,10 @@
 # ByteSize — Evidence-Aware Conversational Search with Value-of-Information Stopping
 
+> **TikTok TechJam 2026 result: this entry did not place.** The competition has
+> concluded and this submission was not among those selected. Everything below is
+> what was built and measured — each number traces to a committed artifact, and
+> none of it was ever a placement claim.
+
 TechJam Track 4: Conversational E-Commerce Search Challenge.
 
 A multi-turn shopping agent that finds a customer's hidden target product inside a
