@@ -19,11 +19,11 @@ from starter.shopping_agent.contest_index import ContestIndex
 from starter.shopping_agent.contest_response import guard_response
 from starter.shopping_agent.contest_rank import (
     conjunction_asins,
-    defer_for_ambiguity,
     dethrone_allowed,
     hard_pool,
     rank,
 )
+from starter.shopping_agent.contest_voi import defer_for_ambiguity
 from starter.shopping_agent.contest_slots import ContestState
 from starter.shopping_agent.contest_text import constraint_matches, product_search_text
 
