@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import re
 import subprocess
 import sys
 import unittest
@@ -34,16 +35,38 @@ def _packed_relpaths() -> set[str]:
 
 
 class SubmissionPackageTests(unittest.TestCase):
-    def test_demo_copy_does_not_embed_a_commit_sha(self) -> None:
+    def test_demo_assets_have_valid_captions_without_a_commit_sha(self) -> None:
         builder = (ROOT / "scripts" / "build_demo_video.py").read_text(encoding="utf-8")
         srt = (ROOT / "report" / "demo_video" / "captions.en.srt").read_text(encoding="utf-8")
         youtube = (ROOT / "report" / "demo_video" / "YOUTUBE.md").read_text(encoding="utf-8")
-        self.assertNotIn("11069c6", builder)
-        self.assertNotIn("11069c6", srt)
-        self.assertNotIn("11069c6", youtube)
-        self.assertIn("reproducible locally", builder)
-        self.assertIn("reproducible locally", srt)
-        self.assertIn("reproducible locally", youtube)
+        for name, text in (("builder", builder), ("captions", srt), ("youtube", youtube)):
+            with self.subTest(asset=name):
+                self.assertNotRegex(text, r"\b[0-9a-fA-F]{7,40}\b", "do not freeze a commit SHA in demo copy")
+        self.assertIn("python -m evaluator.local_evaluator", youtube)
+
+        # SRT contains the spoken narration, not every on-screen footer. Check
+        # the delivery contract without inventing speech to match a slogan.
+        def milliseconds(stamp: str) -> int:
+            h, m, s, ms = map(int, re.split(r"[:,]", stamp))
+            self.assertLess(m, 60)
+            self.assertLess(s, 60)
+            return ((h * 60 + m) * 60 + s) * 1000 + ms
+
+        cues = re.split(r"\n\s*\n", srt.strip())
+        self.assertTrue(cues)
+        previous_end = 0
+        for expected_index, cue in enumerate(cues, 1):
+            lines = cue.splitlines()
+            self.assertGreaterEqual(len(lines), 3)
+            self.assertEqual(lines[0], str(expected_index))
+            timing = re.fullmatch(r"(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})", lines[1])
+            self.assertIsNotNone(timing)
+            start, end = (milliseconds(stamp) for stamp in timing.groups())
+            self.assertGreaterEqual(start, previous_end)
+            self.assertGreater(end, start)
+            self.assertLessEqual(end, 180_000)
+            self.assertTrue(" ".join(lines[2:]).strip())
+            previous_end = end
 
     def test_zip_checklist_requires_minilm_and_excludes_holdout_jsonl(self) -> None:
         checklist = (ROOT / "SUBMISSION_CHECKLIST.md").read_text(encoding="utf-8")

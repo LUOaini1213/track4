@@ -28,6 +28,7 @@ INCLUDE_FILES = [
     "evaluator/local_evaluator.py",
     "demo/__init__.py",
     "demo/run_demo.py",
+    "demo/fixture.py",
     "docs/agent_api_contract.json",
     "docs/competition_specification.md",
     "docs/submission_rules.md",
@@ -40,6 +41,7 @@ INCLUDE_FILES = [
     "report/complete_agent.md",
     "models/README.md",
     "scripts/vendor_minilm.py",
+    "scripts/import_catalog.py",
     "data/public_set.jsonl",
     "data/README.md",
 ]

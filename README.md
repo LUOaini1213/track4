@@ -1,5 +1,7 @@
 # ByteSize — Evidence-Aware Conversational Search with Value-of-Information Stopping
 
+[![offline tests](https://github.com/LUOaini1213/track4/actions/workflows/ci.yml/badge.svg)](https://github.com/LUOaini1213/track4/actions/workflows/ci.yml)
+
 > **TikTok TechJam 2026 result: this entry did not place.** The competition has
 > concluded and this submission was not among those selected. Everything below is
 > what was built and measured — each number traces to a committed artifact, and
@@ -34,24 +36,50 @@ that is why we built our own ID-disjoint holdout and an 8-shard robustness study
 
 Python 3.10 or later. Developed and measured on Python 3.11.5, Windows 10.
 
+Start here without the catalog, API keys, models or third-party packages:
+
 ```bash
-# 1. Get the catalog (see the GitHub Release and its SHA256SUMS)
-gzip -dc catalog.jsonl.gz > data/catalog.jsonl
+# Replay an Agent dialogue using two original synthetic products.
+# This demonstrates the runtime; it does not reproduce the 50,000-item score.
+python -S demo/fixture.py
 
-# 2. Run the official harness. The scored entry point is starter.agent.Agent
-python -m evaluator.local_evaluator --catalog data/catalog.jsonl \
-    --dataset data/public_set.jsonl --output results.json
-
-# 3. Full test suite (133 tests)
-python -m unittest discover -s tests -v
-
-# 4. Watch one multi-turn session end to end
-python demo/run_demo.py --session public_0002   # Intent Override
-python demo/run_demo.py --scenario buying
+# Full test suite: 145 tests; the staged-ZIP check skips until a ZIP is built.
+python -S -m unittest discover -s tests -v
 ```
 
-No environment variables are required. With no variables set, no model backend is
-constructed and **no network request is made**.
+Full public-set scoring additionally requires the organizer's frozen 50,000-item
+`data/catalog.jsonl`. Obtain the original competition file from the organizer or
+your existing participant kit; this repository does not redistribute that file.
+The upstream data source is [Amazon Reviews 2023](https://amazon-reviews-2023.github.io/),
+but downloading a different source export will not recreate the frozen catalog.
+The import command checks its exact SHA256, 50,000 unique product IDs and all 200
+public-session targets before copying it. See `data/README.md` and
+`DATA_ATTRIBUTION.md` for the checksum and source boundaries.
+
+```bash
+# Accepts the original .jsonl or .jsonl.gz; use --check-only to avoid copying.
+python -S scripts/import_catalog.py "/path/to/original/catalog.jsonl.gz"
+
+# Run the official harness using the standard-library fallback.
+# The scored entry point is starter.agent.Agent.
+python -S -m evaluator.local_evaluator --catalog data/catalog.jsonl \
+    --dataset data/public_set.jsonl --output results.json
+
+# Watch one full-catalog session end to end.
+python -S demo/run_demo.py --session public_0002   # Intent Override
+python -S demo/run_demo.py --scenario buying
+```
+
+The fixture tests need no environment variables and run without model packages.
+For full-catalog runs, the scored path can use a local MiniLM tie-breaker; without
+its dependencies/weights the standard-library fallback runs, but is **not score-equivalent**
+to the frozen results above. See `models/README.md`. Set `TECHJAM_DENSE_OFFLINE=1`
+to prevent optional model downloads when using an environment with model packages.
+
+Verified again on 2026-09-12 with Python's `-S` standard-library path and the original
+catalog: Public 200 Hit@10 **1.000**, MRR **0.961131**, MTTC **2.75**, TechnicalScore
+**0.953339**, reported tokens **0**. These are the fallback results, separately from
+the historical MiniLM results in the opening table.
 
 Additional evaluation entry points: `eval_contest.py --only public` scores the public
 200 and writes `results_contest_public.json`; `eval_holdout.py` scores our own
@@ -191,10 +219,12 @@ eval_contest.py                      scores the public 200 → results_contest_p
 eval_holdout.py                      scores our own ID-disjoint holdout 200
 eval_shard.py                        scores one shard of the random 800
 demo/run_demo.py                     replays one multi-turn session
+demo/fixture.py                      original synthetic dialogue, no data or dependencies
 models/                              pinned MiniLM sidecar and its README
 report/                              architecture, ablations, robustness, freeze notes
 holdout/                             our own test sets and comparison JSON (not the organizer's private 800)
 scripts/pack_submission.py           builds the clean Devpost ZIP
+scripts/import_catalog.py            verifies and imports an existing frozen catalog
 data/public_set.jsonl                200 labelled development sessions
 docs/                                competition specification, API contract, scoring config
 ```

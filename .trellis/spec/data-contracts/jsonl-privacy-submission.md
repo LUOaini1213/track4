@@ -2,7 +2,7 @@
 
 ## JSONL 与标识合同
 
-`data/README.md` 规定 `public_set.jsonl` 是公开开发会话，`catalog.jsonl` 需由发布的 `catalog.jsonl.gz` 解压到 `data/`。读取方式应使用 UTF-8，逐行解析非空 JSON；`evaluator/local_evaluator.py:load_jsonl` 与 `catalog_index` 是本仓库的真实示例。
+`data/README.md` 规定 `public_set.jsonl` 是公开开发会话；完整 catalog 需从组织方或已有参赛包取得，本仓库不再分发。运行 `python -S scripts/import_catalog.py <原始路径>` 校验冻结 SHA256、50,000 个唯一 ID 及 200 条公开会话目标后，导入到 `data/catalog.jsonl`。读取方式应使用 UTF-8，逐行解析非空 JSON；`evaluator/local_evaluator.py:load_jsonl` 与 `catalog_index` 是本仓库的真实示例。
 
 冻结 catalog 的评分标识是字符串 `parent_asin`，不是标题、变体或模型产生的别名。`docs/competition_specification.md` 列出可见商品字段，且说明只有 `parent_asin` 被评分。Agent 推荐和测试 fixture 都应使用这个字段；评估器会拒绝 catalog 外 ID，规则见 `normalize_recommendations`。
 

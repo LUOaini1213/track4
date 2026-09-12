@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,6 +12,16 @@ from starter.agent import Agent
 
 
 class DemoReplayTests(unittest.TestCase):
+    def test_fixture_cli_runs_without_site_packages_or_a_local_catalog(self) -> None:
+        script = Path(__file__).resolve().parents[1] / "demo" / "fixture.py"
+        with tempfile.TemporaryDirectory() as directory:
+            result = subprocess.run([sys.executable, "-S", "-X", "utf8", str(script)], cwd=directory, text=True, encoding="utf-8", capture_output=True, timeout=30)
+            self.assertEqual(list(Path(directory).iterdir()), [])
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Synthetic 2-product runtime demo", result.stdout)
+        self.assertIn("HIT turn=1 rank=1", result.stdout)
+        self.assertIn("usage prompt=0 completion=0", result.stdout)
+
     def test_pick_sample_uses_stable_scenario_defaults(self) -> None:
         samples = [
             {"sample_id": "public_0001", "scenario_type": "buying"},
