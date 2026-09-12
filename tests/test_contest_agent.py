@@ -867,7 +867,10 @@ class ContestAgentTests(unittest.TestCase):
             "HOT",
         )
 
+    @patch.dict(os.environ, {"TECHJAM_DENSE_OFFLINE": "0", "HF_HUB_OFFLINE": "0"})
     def test_minilm_loader_uses_cache_then_hub(self) -> None:
+        # This tests load order through fake_load below, never the real Hub.
+        # The surrounding process may correctly enforce offline-only operation.
         encoder = PoolDenseEncoder()
         encoder._source = lambda: "sentence-transformers/all-MiniLM-L6-v2"  # type: ignore[method-assign]
         encoder._source_is_local_dir = lambda: False  # type: ignore[method-assign]
