@@ -43,9 +43,24 @@ Start here without the catalog, API keys, models or third-party packages:
 # This demonstrates the runtime; it does not reproduce the 50,000-item score.
 python -S demo/fixture.py
 
-# Full test suite: 145 tests; the staged-ZIP check skips until a ZIP is built.
+# Replay a real labelled session end to end, on the committed catalog slice.
+python -S demo/run_demo.py --session public_0002   # Intent Override
+python -S demo/run_demo.py --scenario browsing     # public_0007
+
+# Full test suite: 148 tests; the staged-ZIP check skips until a ZIP is built.
 python -S -m unittest discover -s tests -v
 ```
+
+`demo/run_demo.py` uses `data/catalog.jsonl` when that file is present and
+otherwise falls back to `data/catalog.mini.jsonl` (1,631 rows, 2.2 MB, committed),
+naming on its first line the file it actually read. The slice keeps the complete
+shelf of the four sessions the script defaults to — `public_0001`, `public_0002`,
+`public_0007`, `public_0035` — and each of those shelves is larger than
+`min_candidates`, so the candidate pool is never padded from the rest of the
+catalog and the four replay turn for turn as they do on the full 50,000 items.
+Any other session also runs and the script says it is not pool-equivalent; a
+score computed on the slice means nothing. `scripts/make_mini_catalog.py`
+rebuilds the slice from the frozen catalog.
 
 Full public-set scoring additionally requires the organizer's frozen 50,000-item
 `data/catalog.jsonl`. Obtain the original competition file from the organizer or
@@ -65,9 +80,8 @@ python -S scripts/import_catalog.py "/path/to/original/catalog.jsonl.gz"
 python -S -m evaluator.local_evaluator --catalog data/catalog.jsonl \
     --dataset data/public_set.jsonl --output results.json
 
-# Watch one full-catalog session end to end.
+# With the frozen catalog in place, the same replay runs on all 50,000 items.
 python -S demo/run_demo.py --session public_0002   # Intent Override
-python -S demo/run_demo.py --scenario buying
 ```
 
 The fixture tests need no environment variables and run without model packages.

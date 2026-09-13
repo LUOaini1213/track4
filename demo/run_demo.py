@@ -35,9 +35,17 @@ from starter.agent import Agent  # noqa: E402
 SCENARIO_DEFAULTS = {
     "buying": "public_0001",
     "intent_override": "public_0002",
-    "browsing": "public_0006",
+    # public_0007, not public_0006: public_0007's shelf is 519 rows, above
+    # min_candidates, so its candidate pool is identical on the committed
+    # data/catalog.mini.jsonl. public_0006's shelf is 13 rows, gets padded
+    # from the rest of the catalog, and would replay differently on the slice.
+    "browsing": "public_0007",
     "boundary": "public_0035",
 }
+MINI_CATALOG = REPO / "data" / "catalog.mini.jsonl"
+# Sessions whose whole shelf is in the slice, so the replay matches a
+# full-catalog run. Kept in step with scripts/make_mini_catalog.py.
+POOL_EQUIVALENT_ON_MINI = tuple(sorted(SCENARIO_DEFAULTS.values()))
 
 
 def run_session(agent: Agent, sample: dict, products: dict, categories: dict) -> dict:
@@ -159,6 +167,26 @@ def main() -> None:
         if line.strip()
     ]
     sample = pick_sample(samples, args.session, args.scenario)
+    catalog = Path(args.catalog)
+    if not catalog.is_file():
+        if not MINI_CATALOG.is_file():
+            raise SystemExit(
+                f"catalog not found: {catalog}. Import the organizer's frozen file with "
+                "scripts/import_catalog.py (see data/README.md), or rebuild the slice "
+                "with scripts/make_mini_catalog.py."
+            )
+        equivalent = sample["sample_id"] in POOL_EQUIVALENT_ON_MINI
+        print(
+            f"[demo] {catalog.name} not found; replaying on the committed slice "
+            f"{MINI_CATALOG.name} ({MINI_CATALOG.stat().st_size / 1e6:.1f} MB)."
+        )
+        print(
+            f"[demo] {sample['sample_id']} is pool-equivalent on the slice: {equivalent}. "
+            f"Pool-equivalent sessions: {', '.join(POOL_EQUIVALENT_ON_MINI)}. "
+            "Other sessions run but see a different candidate pool, so any score "
+            "computed on the slice is meaningless."
+        )
+        args.catalog = str(MINI_CATALOG)
     started = time.perf_counter()
     agent = Agent(args.catalog)
     _, categories, products = catalog_index(args.catalog)
