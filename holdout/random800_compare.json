@@ -1,4 +1,5 @@
 {
+  "snapshot": "pre-freeze snapshot of the same 800 sessions, committed in 4b71160 before the E123 freeze 3a31ace; superseded by holdout/shards/a_vs_e123.json (pooled_mean_of_shards.e123). Not the result reported in README.md.",
   "parallel": "8 spawn_subagent workers, each eval_shard.py on 100 sessions, shared catalog path",
   "random800_n": 800,
   "mix": {

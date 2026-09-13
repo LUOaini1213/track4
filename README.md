@@ -28,6 +28,30 @@ produces **+60 rank-1 recommendations with zero Hit-rate loss**, improving on
 `TechnicalScore = 0.50 × Hit@10 + 0.30 × MRR + 0.20 × Efficiency`, where
 `Efficiency = clip((11 - MTTC) / 10, 0, 1)`.
 
+Each row comes from exactly one committed file:
+
+| Row | Source of every number in it |
+|---|---|
+| Public (labelled) | `results_contest_public.json` |
+| Our ID-disjoint holdout | `holdout/ours_holdout.json` |
+| Random 800, 8×100 shards | `holdout/shards/a_vs_e123.json` → `pooled_mean_of_shards.e123` |
+| Weak BM25 starter (reference) | `docs/baseline_results.json` |
+
+`tests/test_reported_claims.py` reparses this README together with that source
+table and checks every cell against the declared file: the Public and holdout
+aggregates are recomputed from their 200 per-session records through
+`evaluator.local_evaluator.metric_summary`, the Random-800 row from its eight
+per-shard records. Rank-1 exists only in the per-session records and is always
+recounted. Changing a digit in the score table, pointing a row at a different
+file, or letting a result file drift turns the CI badge red.
+
+Two older artifacts in `holdout/` measure the same 800 sessions under an earlier
+configuration and are **superseded**: `holdout/shards/out_0..7.json` and
+`holdout/random800_compare.json` pool to Hit 0.9725 / MRR 0.824885 / MTTC 2.69125
+/ TechnicalScore 0.89989, recorded before the E123 freeze commit `3a31ace`. They
+are kept as the research trail, not as the reported result; each now carries a
+`snapshot` field saying so.
+
 Every number above was produced with `usage = 0 prompt tokens, 0 completion tokens`.
 The public-set score is **not** a prediction for the organizer's private 800 sessions;
 that is why we built our own ID-disjoint holdout and an 8-shard robustness study.
@@ -47,7 +71,7 @@ python -S demo/fixture.py
 python -S demo/run_demo.py --session public_0002   # Intent Override
 python -S demo/run_demo.py --scenario browsing     # public_0007
 
-# Full test suite: 148 tests; the staged-ZIP check skips until a ZIP is built.
+# Full test suite: 159 tests; the staged-ZIP check skips until a ZIP is built.
 python -S -m unittest discover -s tests -v
 ```
 
