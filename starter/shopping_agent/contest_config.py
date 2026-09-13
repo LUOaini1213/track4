@@ -177,7 +177,7 @@ PUBLIC = ContestConfig(
     # public 0.9547 Hit 1.0 / holdout 0.898718 Hit 0.980 rank1 145 (0128 3→1).
     # B/C/D missed 0128 and only burned MTTC. Not gate 8/10.
     ambiguity_defer="a",
-    # Frozen champion: E1+E2+E3. Do not add E124-style rules on this holdout.
+    # Frozen configuration: E1+E2+E3. Do not add E124-style rules on this holdout.
     # public Hit 1.0 / 0.95125, holdout 0.911753 Hit 0.980 rank1 162.
     progress_defer="e123",
     dump_pool_cap=80,

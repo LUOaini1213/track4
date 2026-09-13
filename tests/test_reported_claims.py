@@ -17,7 +17,9 @@ Each test walks the same three steps a sceptical reader would:
    move the reported numbers.
 
 Rank-1 counts are not stored as aggregates anywhere; they only ever come from
-step 3. Standard library only, no catalog, no network: this runs under
+step 3. The last class checks the one non-numeric README claim that fails the
+same way -- the Branches table, which used to send a reader to a branch that
+does not exist. Standard library only, no catalog, no network: this runs under
 ``python -S`` in CI on both Linux and Windows.
 """
 
@@ -38,6 +40,13 @@ PLACES = 6
 SCORE_TABLE_HEADER = ["Set", "n", "Hit@10", "MRR", "MTTC", "TechnicalScore", "Rank-1"]
 SOURCE_TABLE_HEADER = ["Row", "Source of every number in it"]
 NODENSE_TABLE_HEADER = ["Set", "With MiniLM", "Without MiniLM"]
+BRANCH_TABLE_HEADER = ["Branch", "`starter.agent.Agent`", "Purpose"]
+SUBMISSION_TIME_DOCS = (
+    "report/freeze.md",
+    "report/submit.md",
+    "SUBMISSION_CHECKLIST.md",
+    "report/devpost_description.md",
+)
 
 
 def cells(line: str) -> list[str]:
@@ -318,6 +327,48 @@ class SupersededSnapshotTests(unittest.TestCase):
         row = self.compare["rows"]["random_800"]
         self.assertNotAlmostEqual(row["mrr"], reported["mrr"], places=PLACES)
         self.assertNotAlmostEqual(row["recommended_technical_score"], reported["score"], places=PLACES)
+
+
+class BranchTableTests(unittest.TestCase):
+    """The Branches table must describe branches a reader can actually open.
+
+    It used to list ``main`` as "Group integration" and send anyone looking for
+    the scored code to ``contest/public``, which 404s: this repository has only
+    ``main`` and ``v2/shelf-recall``. The check is deliberately offline --
+    ``git branch -r`` on the shallow single-branch CI checkout lists only the
+    branch being built, so it cannot be the source of truth here.
+    """
+
+    def setUp(self) -> None:
+        self.rows = markdown_table(BRANCH_TABLE_HEADER)
+        self.branches = [re.sub(r"[`\s]", "", row[0]) for row in self.rows]
+
+    def test_the_table_never_points_at_an_unpublished_branch(self) -> None:
+        self.assertNotIn("contest/public", self.branches)
+        self.assertNotIn("legacy/qwen", self.branches)
+
+    def test_main_is_the_one_row_marked_as_scored(self) -> None:
+        scored = [row for row in self.rows if "scored" in row[2].lower()]
+        self.assertEqual(len(scored), 1, "exactly one row may claim to be the scored branch")
+        self.assertEqual(re.sub(r"[`\s]", "", scored[0][0]), "main")
+        self.assertIn("ContestAgent PUBLIC", scored[0][1])
+
+    def test_the_scored_entry_point_agrees_with_the_table(self) -> None:
+        """Not only a claim in markdown: import the entry point and read its MRO."""
+        from starter.agent import Agent
+
+        self.assertIn("ContestAgent", [cls.__name__ for cls in Agent.__mro__])
+
+    def test_documents_that_still_say_contest_public_open_with_a_note(self) -> None:
+        """Kept as the submission-time record, so each has to say so up front."""
+        for name in SUBMISSION_TIME_DOCS:
+            with self.subTest(document=name):
+                lines = (ROOT / name).read_text(encoding="utf-8").splitlines()
+                self.assertIn("contest/public", " ".join(lines))
+                self.assertTrue(lines[0].startswith("# "), f"{name} must open with a title")
+                note = [line for line in lines[:8] if line.startswith(">")]
+                self.assertTrue(note, f"{name} must open with a note about its branch names")
+                self.assertIn("main", " ".join(note))
 
 
 if __name__ == "__main__":

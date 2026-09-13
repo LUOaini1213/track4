@@ -1,6 +1,8 @@
-# Submission freeze：E123 champion
+# Submission freeze：E123 冻结配置
 
-E123 不再当实验版。只在 **正确性 bug** 或 **真正新的信息源** 时重开 PUBLIC。holdout 上 +0.0005 的新 heuristic 不碰冠军。**不要再优化 E123 或 `rank()`。**
+> 提交时点记录，未按当前仓库改写：文中的仓库名与分支名（`contest/public`、`legacy/qwen`）是当时的叫法，本仓库现在只有 `main` 与 `v2/shelf-recall`，计分实现在 `main`。见 README 的 Branches 一节。
+
+E123 不再当实验版。只在 **正确性 bug** 或 **真正新的信息源** 时重开 PUBLIC。holdout 上 +0.0005 的新 heuristic 不碰冻结配置。**不要再优化 E123 或 `rank()`。**
 
 答辩主线：**Evidence-Aware Conversational Search with Value-of-Information Stopping**。
 
@@ -14,7 +16,7 @@ E123 不再当实验版。只在 **正确性 bug** 或 **真正新的信息源**
 
 | 角色 | SHA | 含义 |
 |---|---|---|
-| **Algorithm freeze** | `3a31aceb969a0697511e254f7273f8b57cb40fce` | 最后一次改 E123 / `rank()`。下面的冠军数字来自这里。 |
+| **Algorithm freeze** | `3a31aceb969a0697511e254f7273f8b57cb40fce` | 最后一次改 E123 / `rank()`。下面的冻结配置数字来自这里。 |
 | **Submission SHA** | Devpost 提交当日的 `git rev-parse HEAD` | 含 MiniLM sidecar loader 与文档。**只填 Devpost，不要写进视频。** |
 
 `3a31ace` 之后的 commit **不允许**改 PUBLIC knobs 或 `rank()`。视频/字幕只写 `ByteSize · contest/public · reproducible locally`。最终 SHA 在交 ZIP 那天填 Devpost。ZIP 清单见仓库根目录 `SUBMISSION_CHECKLIST.md`。
@@ -32,7 +34,7 @@ E123 不再当实验版。只在 **正确性 bug** 或 **真正新的信息源**
 | LLM | `llm_listwise=False`，0 token |
 | Encoder | `sentence-transformers/all-MiniLM-L6-v2` @ `c9745ed1d9f207416be6d2e6f8de32d1f16199bf`；`model.safetensors` sha256 `53aa51172d142c89d9012cce15ae4d6cc0ca6895895114379cacb4fab128d9db` |
 
-## 冠军数字（有 MiniLM）
+## 冻结配置数字（有 MiniLM）
 
 | 集合 | Hit@10 | MRR | MTTC | TechnicalScore | Rank1 |
 |---|---:|---:|---:|---:|---:|
@@ -68,7 +70,7 @@ PUBLIC.llm_listwise = False
 | Public nodense | **1.000** | 0.961131 | 2.75 | 0.953339 | 187 | 0 |
 | Holdout nodense | **0.975** | 0.868429 | 2.925 | 0.909529 | 162 | 0 |
 
-VoI stop 不依赖 MiniLM（公开 MTTC 仍 2.75）。Holdout 少 `0090`（rubber sole）。**Agent 能跑 ≠ 分数等价。** 冠军路径是有 MiniLM 的 Hit `0.980`。工件：`report/freeze_nodense.json`。
+VoI stop 不依赖 MiniLM（公开 MTTC 仍 2.75）。Holdout 少 `0090`（rubber sole）。**Agent 能跑 ≠ 分数等价。** 冻结配置路径是有 MiniLM 的 Hit `0.980`。工件：`report/freeze_nodense.json`。
 
 ### 官方 Q&A 实际说了什么
 
@@ -102,6 +104,6 @@ VoI stop 不依赖 MiniLM（公开 MTTC 仍 2.75）。Holdout 少 `0090`（rubbe
 - `python scripts/vendor_minilm.py` 后确认 `models/all-MiniLM-L6-v2/model.safetensors` 存在（zip 带上；不要推进 git）
 - `python -m unittest discover -s tests -v`（133/133。Path("/content/") 曾是 infrastructure-only，现已 portable）
 - `python -m evaluator.local_evaluator` 入口是 `Agent`
-- `results_contest_public.json` / `holdout/ours_holdout.json` 为 **带 MiniLM** 的冠军数字
+- `results_contest_public.json` / `holdout/ours_holdout.json` 为 **带 MiniLM** 的冻结配置数字
 - 跨 shard：`holdout/shards/a_vs_e123.json`，**8/8 e123 > A**
 - 组仓库迁移后 **clean-room 再跑一次官方入口**，不要假设 personal clone ≡ group repo

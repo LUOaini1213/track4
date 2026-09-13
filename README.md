@@ -71,7 +71,7 @@ python -S demo/fixture.py
 python -S demo/run_demo.py --session public_0002   # Intent Override
 python -S demo/run_demo.py --scenario browsing     # public_0007
 
-# Full test suite: 159 tests; the staged-ZIP check skips until a ZIP is built.
+# Full test suite: 163 tests; the staged-ZIP check skips until a ZIP is built.
 python -S -m unittest discover -s tests -v
 ```
 
@@ -182,7 +182,7 @@ disable it; our scored path is unaffected because the encoder ships with the bun
 
 ### MiniLM is a scoring dependency, not an optional extra
 
-The champion numbers use `sentence-transformers/all-MiniLM-L6-v2` at revision
+The frozen configuration's numbers use `sentence-transformers/all-MiniLM-L6-v2` at revision
 `c9745ed1d9f207416be6d2e6f8de32d1f16199bf` (Apache-2.0), with `model.safetensors`
 sha256 `53aa51172d142c89d9012cce15ae4d6cc0ca6895895114379cacb4fab128d9db`.
 
@@ -269,11 +269,20 @@ docs/                                competition specification, API contract, sc
 
 ## Branches
 
+This repository has two branches, and `main` is the one that was scored.
+
 | Branch | `starter.agent.Agent` | Purpose |
 |---|---|---|
-| `contest/public` | ContestAgent PUBLIC | **Submission and scoring** |
-| `main` | — | Group integration |
-| `legacy/qwen` | Retrieval + Qwen reranker | Teammate experiment, not loaded by the evaluator |
+| `main` | ContestAgent PUBLIC | **The scored implementation.** Every number in this README was produced by this code |
+| `v2/shelf-recall` | ContestAgent PUBLIC + a shelf-recall experiment | Later experiment, kept for the record; no reported number comes from it |
+
+Four documents were written at submission time and still name the branch
+`contest/public`, a teammate branch `legacy/qwen`, and an earlier repository
+name: `report/freeze.md`, `report/submit.md`, `SUBMISSION_CHECKLIST.md` and
+`report/devpost_description.md`. Neither of those branches is published here.
+Those files are left as they were written, each with a note at the top, because
+they are the record of what was submitted rather than a description of the
+repository today.
 
 The scored configuration is frozen. `report/freeze.md` records the algorithm-freeze
 commit and the gates that would be required to reopen it.

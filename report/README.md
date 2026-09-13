@@ -1,6 +1,6 @@
 # 报告目录（ContestAgent PUBLIC）
 
-计分实现：`starter/shopping_agent/contest_*.py`。评估器加载的 `starter.agent.Agent` 就是它。组员 Qwen 实验见分支 `legacy/qwen`。
+计分实现：`starter/shopping_agent/contest_*.py`。评估器加载的 `starter.agent.Agent` 就是它。组员的 Qwen 实验分支 `legacy/qwen` 未随本仓公开，评估器也不加载它。
 
 ## 当前分数
 
@@ -42,4 +42,4 @@ python demo/run_demo.py --session public_0002
 python -m unittest discover -s tests -v
 ```
 
-协议骨架（不要为公开集再拧）：永远问 `other`、逐字 AND、`gate_size=5`、Override 前不出表、`dump_slots=4`。3 槽 field-flat 再问一轮（`ambiguity_defer=a`）。Buying/Browsing 在池 ≤5 但槽未满、或 3 槽 leftover 时再问一轮（`progress_defer=e123`，一次性）。MiniLM 只在有区分项的硬池上。硬池精确行 `w_field=0.35`，标题短语 `w_phrase=0.15`。缺权重则 dense 为 0（Holdout Hit 0.975，不是冠军路径）。
+协议骨架（不要为公开集再拧）：永远问 `other`、逐字 AND、`gate_size=5`、Override 前不出表、`dump_slots=4`。3 槽 field-flat 再问一轮（`ambiguity_defer=a`）。Buying/Browsing 在池 ≤5 但槽未满、或 3 槽 leftover 时再问一轮（`progress_defer=e123`，一次性）。MiniLM 只在有区分项的硬池上。硬池精确行 `w_field=0.35`，标题短语 `w_phrase=0.15`。缺权重则 dense 为 0（Holdout Hit 0.975，不是冻结配置路径）。

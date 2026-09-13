@@ -1,5 +1,10 @@
 # Devpost written description — ByteSize, Track 4
 
+> Written at submission time and left unedited: the repository and branch names
+> in it (`contest/public`, `legacy/qwen`) are what they were called then. This
+> repository has only `main` and `v2/shelf-recall`, and `main` is the scored
+> branch. See the Branches section of the README.
+
 Copy the sections below into the Devpost submission form. Fill the Submission SHA with
 `git rev-parse HEAD` of the tree you actually zip, on submit day.
 
