@@ -43,7 +43,7 @@ Start here without the catalog, API keys, models or third-party packages:
 # This demonstrates the runtime; it does not reproduce the 50,000-item score.
 python -S demo/fixture.py
 
-# Full test suite: 163 tests; the staged-ZIP check skips until a ZIP is built.
+# Full test suite: 164 tests; the staged-ZIP check skips until a ZIP is built.
 python -S -m unittest discover -s tests -v
 ```
 

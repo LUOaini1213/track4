@@ -62,7 +62,7 @@ INCLUDE_GLOBS = [
 ]
 
 # The complete, trusted load-file list is shared with runtime validation.
-from starter.shopping_agent.contest_checkpoint import MINILM_FILES, validate_checkpoint, CheckpointError
+from starter.shopping_agent.contest_checkpoint import MINILM_FILES, validate_checkpoint, validate_manifest_file, CheckpointError
 
 
 def _copy_file(src: Path, dest: Path) -> None:
@@ -120,6 +120,7 @@ def main() -> int:
             for name in MINILM_FILES:
                 _copy_file(snap / name, dest_models / name)  # includes model.safetensors
             proof = validate_checkpoint(dest_models)
+            validate_manifest_file(candidate / "models" / "minilm-manifest.json")
             _check_import(candidate)
             candidate_zip = temporary / ZIP_PATH.name
             with zipfile.ZipFile(candidate_zip, "w", zipfile.ZIP_DEFLATED) as archive:

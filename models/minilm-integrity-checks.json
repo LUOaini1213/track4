@@ -11,16 +11,16 @@
   "paid_api_calls": 0,
   "validation": {
     "full_stdlib_unittest": {
-      "ran": 163,
-      "passed": 162,
+      "ran": 164,
+      "passed": 163,
       "skipped": 1,
       "skip_reason": "Real staged ZIP absent; no real weight download was authorized."
     },
     "synthetic_runtime_dialogue": "PASS, two synthetic products only",
     "synthetic_pack_guards": "PASS including copied-file hash, missing source, import, ZIP write and ZIP rename failures; previous ZIP preserved",
     "optimized_targeted_unittest": {
-      "ran": 22,
-      "passed": 22,
+      "ran": 23,
+      "passed": 23,
       "skipped": 0
     }
   },

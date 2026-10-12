@@ -8,7 +8,7 @@
 6. Update repository offline spec and result boundaries, commit locally.
 7. Apply only public technical files to the private branch, add complete module whitelist, repeat its offline checks and freeze.
 
-Completed local checks: public full stdlib suite 163 tests (162 pass, 1 real-ZIP skip),
+Completed local checks: public full stdlib suite 164 tests (163 pass, 1 real-ZIP skip),
 synthetic dialogue and transaction tests pass. New code does not run an encoder
 forward. Official pinned metadata provenance is in the manifest; historical
 rank/config/evaluator/data/report bytes remain unchanged. No push/publication.

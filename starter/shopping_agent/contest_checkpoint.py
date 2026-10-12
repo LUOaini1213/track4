@@ -28,9 +28,9 @@ def manifest_path() -> Path:
     return Path(__file__).resolve().parents[2] / "models" / "minilm-manifest.json"
 
 
-def load_manifest() -> dict:
+def validate_manifest_file(path: Path) -> dict:
     try:
-        with manifest_path().open("rb") as handle:
+        with path.open("rb") as handle:
             raw = handle.read(16385)
     except OSError as exc:
         raise CheckpointError("Trusted MiniLM manifest is missing") from exc
@@ -45,6 +45,10 @@ def load_manifest() -> dict:
     except (ValueError, KeyError, TypeError) as exc:
         raise CheckpointError("Trusted MiniLM manifest schema/identity mismatch") from exc
     return value
+
+
+def load_manifest() -> dict:
+    return validate_manifest_file(manifest_path())
 
 
 def _validate_files(directory: Path, expected: dict) -> None:

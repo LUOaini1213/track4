@@ -84,6 +84,17 @@ class CheckpointPackageTests(unittest.TestCase):
         self.assert_old_zip()
         self.assertEqual((self.pack.STAGE / "old.txt").read_text(), "previous stage")
 
+    def test_copied_trusted_manifest_corruption_preserves_zip(self):
+        original = self.pack._copy_file
+        def corrupt(src, dest):
+            original(src, dest)
+            if src.name == "minilm-manifest.json":
+                raw = dest.read_bytes(); dest.write_bytes(b"X" + raw[1:])
+        with patch.object(checkpoint, "load_manifest", return_value=self.manifest), patch.object(self.pack, "_copy_file", side_effect=corrupt), patch.object(self.pack, "_check_import") as import_check:
+            self.assertEqual(self.pack.main(), 1)
+            import_check.assert_not_called()
+        self.assert_old_zip()
+
     def test_zip_write_failure_preserves_previous_zip(self):
         with patch.object(checkpoint, "load_manifest", return_value=self.manifest), patch.object(self.pack.zipfile, "ZipFile", side_effect=OSError("fixture")):
             self.assertEqual(self.pack.main(), 1)
