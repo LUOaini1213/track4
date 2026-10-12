@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "source_base": "cd197e681d901f006ef5fcfc34a5c3ce13334974",
+  "manifest_sha256": "ad1b805bac91feb0a675354caf7bfdc772165e0c8ea849b7fd1e7545012f7fb1",
+  "official_revision": "c9745ed1d9f207416be6d2e6f8de32d1f16199bf",
+  "official_metadata_files_downloaded": 5,
+  "official_metadata_file_bytes": 698829,
+  "weight_download_bytes": 0,
+  "encoder_forwards": 0,
+  "gpu_runs": 0,
+  "paid_api_calls": 0,
+  "validation": {
+    "full_stdlib_unittest": {
+      "ran": 164,
+      "passed": 163,
+      "skipped": 1,
+      "skip_reason": "Real staged ZIP absent; no real weight download was authorized."
+    },
+    "synthetic_runtime_dialogue": "PASS, two synthetic products only",
+    "synthetic_pack_guards": "PASS including copied-file hash, missing source, import, ZIP write and ZIP rename failures; previous ZIP preserved",
+    "optimized_targeted_unittest": {
+      "ran": 23,
+      "passed": 23,
+      "skipped": 0
+    }
+  },
+  "preserved": [
+    "E123/PUBLIC configuration",
+    "rank() source bytes",
+    "evaluator source and scoring semantics",
+    "public sessions",
+    "holdout data and historical report/measurement bytes"
+  ],
+  "limits": [
+    "Positive small-file tests explicitly mock trusted manifest data; they do not validate a real MiniLM checkpoint or model output.",
+    "Only the official manifest and negative fake-file rejection use production trust; large weight bytes were not obtained.",
+    "No historical score was recomputed and no new inference equivalence, accuracy or latency is claimed."
+  ]
+}

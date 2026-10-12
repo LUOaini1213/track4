@@ -12,6 +12,7 @@ from pathlib import Path
 
 from .contest_config import ContestConfig, PUBLIC
 from .contest_dialogue import parse_opening, parse_reply
+from .contest_dense import get_encoder
 from .contest_index import ContestIndex
 from .contest_llm import listwise_rerank
 from .contest_rank import (
@@ -137,6 +138,7 @@ class ContestAgent:
 
         self.last_diagnostics = {
             "event": "respond",
+            "dense": dict(get_encoder().diagnostics),
             "session_id": session_id,
             "turn": state.turn,
             "scenario": state.scenario,

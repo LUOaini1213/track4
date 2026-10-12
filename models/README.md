@@ -42,3 +42,21 @@ python scripts/vendor_minilm.py
 ```
 
 `python scripts/vendor_minilm.py` 必须打印这个值。本机 Hugging Face 缓存里曾有一份小 64 字节的副本（`c24bb44a…` / 90,868,312）；冠军 eval 走的是缓存。sidecar 以 Hub 为准，不是换 encoder。不要去追浮动的 `main`。
+
+## 完整性校验（不改历史成绩）
+
+`models/minilm-manifest.json` 固定上述官方 revision 的六个 AutoModel/AutoTokenizer
+文件。权重 SHA/字节数来自官方 pinned Hub LFS metadata；五个小配置/词表文件
+由同 revision 的实际字节计算 SHA256，并与官方 Git blob ID 对照。没有下载
+权重或重跑 encoder/evaluation。清单本身 SHA 绑定在 `contest_checkpoint.py` 中，
+不能靠给未知本地文件生成新 manifest 获得信任。
+
+运行时优先源必须先通过该清单，再以 local-only 模式加载。环境覆盖目录或
+sidecar 缺/坏文件会记录 `get_encoder().diagnostics` 的 `nodense` 原因，并保留
+标准库排序；这种 fallback 不是原成绩的等价复现。Agent 的 `last_diagnostics`
+也包含该状态。Hub/cache 始终解析固定 revision，且只获取六个必需文件。
+
+`python scripts/pack_submission.py` 不再自动下载模型：先显式运行 vendor 命令。
+打包先校验源和复制后的工件、验证 staged Agent 导入，再原子替换 ZIP；失败
+保留已有 ZIP。当前离线回归使用小型假工件和 fake factories，只证明 guard、
+preload binding 和打包事务，没有证明新 runtime 的实际 encoder 输出或成绩。
