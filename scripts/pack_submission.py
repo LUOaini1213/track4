@@ -2,12 +2,15 @@
 """Build a clean Devpost ZIP. Does not change E123 or rank().
 
 GitHub keeps holdout JSON and agent-tooling dirs. The ZIP does not.
-Requires MiniLM sidecar; vendors it if missing.
+Requires a verified MiniLM sidecar; never downloads weights automatically.
 """
 
 from __future__ import annotations
 
 import shutil
+import os
+import subprocess
+import tempfile
 import sys
 import zipfile
 from pathlib import Path
@@ -16,6 +19,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "submission_dist"
 STAGE = DIST / "bytesize-track4"
 ZIP_PATH = DIST / "bytesize-track4.zip"
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 INCLUDE_FILES = [
     "README.md",
@@ -40,6 +45,7 @@ INCLUDE_FILES = [
     "report/robustness.md",
     "report/complete_agent.md",
     "models/README.md",
+    "models/minilm-manifest.json",
     "scripts/vendor_minilm.py",
     "scripts/import_catalog.py",
     "data/public_set.jsonl",
@@ -55,16 +61,8 @@ INCLUDE_GLOBS = [
     "starter/shopping_agent/*.py",
 ]
 
-# Hugging Face snapshot also ships ONNX/TF/PyTorch duplicates (~800MB).
-# ContestAgent only loads AutoModel + AutoTokenizer.
-MINILM_FILES = (
-    "config.json",
-    "model.safetensors",
-    "tokenizer.json",
-    "tokenizer_config.json",
-    "special_tokens_map.json",
-    "vocab.txt",
-)
+# The complete, trusted load-file list is shared with runtime validation.
+from starter.shopping_agent.contest_checkpoint import MINILM_FILES, validate_checkpoint, CheckpointError
 
 
 def _copy_file(src: Path, dest: Path) -> None:
@@ -72,56 +70,84 @@ def _copy_file(src: Path, dest: Path) -> None:
     shutil.copy2(src, dest)
 
 
+def _safe_outputs() -> None:
+    base = ROOT.resolve()
+    expected = base / "submission_dist"
+    if DIST.resolve() != expected or DIST.is_symlink():
+        raise ValueError("Package output directory escapes the fixed artifact location")
+    for path in (STAGE, ZIP_PATH):
+        if path.parent.resolve() != expected or path.is_symlink() or not path.resolve().is_relative_to(expected):
+            raise ValueError("Package output path escapes the fixed artifact location")
+
+
+def _check_import(stage: Path) -> None:
+    env = dict(os.environ, TECHJAM_DENSE_OFFLINE="1", HF_HUB_OFFLINE="1", TRANSFORMERS_OFFLINE="1")
+    env.pop("PYTHONPATH", None)
+    result = subprocess.run([sys.executable, "-S", "-c",
+        "from starter.agent import Agent; from pathlib import Path; import starter.agent as a; "
+        "import sys; ok=Path(a.__file__).resolve().is_relative_to(Path.cwd().resolve()) and "
+        "'ContestAgent' in [c.__name__ for c in Agent.__mro__]; sys.exit(0 if ok else 2)"],
+        cwd=stage, env=env, capture_output=True, text=True, timeout=120)
+    if result.returncode:
+        raise ValueError("Staged Agent import failed; previous ZIP preserved")
+
+
 def main() -> int:
-    sys.path.insert(0, str(ROOT))
-    from starter.shopping_agent.contest_dense import is_transformers_dir, snapshot_dir
-
-    snap = snapshot_dir()
-    if not is_transformers_dir(snap):
-        print("MiniLM sidecar missing; running vendor_minilm.py", flush=True)
-        import subprocess
-
-        code = subprocess.call([sys.executable, str(ROOT / "scripts" / "vendor_minilm.py")], cwd=ROOT)
-        if code != 0:
-            print("cannot pack without MiniLM weights", file=sys.stderr)
-            return 1
-    if not is_transformers_dir(snap):
-        print(f"still no transformers dir at {snap}", file=sys.stderr)
+    from starter.shopping_agent.contest_dense import snapshot_dir
+    try:
+        _safe_outputs()
+        snap = snapshot_dir()
+        validate_checkpoint(snap)
+        DIST.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix=".pack-", dir=DIST) as directory:
+            temporary = Path(directory)
+            if temporary.resolve().parent != DIST.resolve():
+                raise ValueError("Temporary package directory escapes artifact location")
+            candidate = temporary / STAGE.name
+            candidate.mkdir()
+            for rel in INCLUDE_FILES:
+                src = ROOT / rel
+                if not src.is_file() or not src.resolve().is_relative_to(ROOT.resolve()):
+                    raise ValueError("Required package source missing or outside repository: " + rel)
+                _copy_file(src, candidate / rel)
+            for pattern in INCLUDE_GLOBS:
+                for src in ROOT.glob(pattern):
+                    if src.is_file():
+                        if not src.resolve().is_relative_to(ROOT.resolve()):
+                            raise ValueError("Package source escapes repository")
+                        _copy_file(src, candidate / src.relative_to(ROOT))
+            dest_models = candidate / "models" / "all-MiniLM-L6-v2"
+            for name in MINILM_FILES:
+                _copy_file(snap / name, dest_models / name)  # includes model.safetensors
+            proof = validate_checkpoint(dest_models)
+            _check_import(candidate)
+            candidate_zip = temporary / ZIP_PATH.name
+            with zipfile.ZipFile(candidate_zip, "w", zipfile.ZIP_DEFLATED) as archive:
+                for path in candidate.rglob("*"):
+                    if path.is_file() and "__pycache__" not in path.parts:
+                        archive.write(path, path.relative_to(temporary).as_posix())
+            with zipfile.ZipFile(candidate_zip) as archive:
+                if archive.testzip() is not None:
+                    raise ValueError("Staged ZIP failed CRC verification")
+            # Keep the old stage until ZIP replacement succeeds. All rename/cleanup
+            # targets were resolved inside the fixed generated artifact directory.
+            backup = temporary / "previous-stage"
+            if STAGE.exists():
+                os.replace(STAGE, backup)
+            try:
+                os.replace(candidate, STAGE)
+                os.replace(candidate_zip, ZIP_PATH)
+            except OSError:
+                if STAGE.exists(): os.replace(STAGE, candidate)
+                if backup.exists(): os.replace(backup, STAGE)
+                raise
+        print("zip: " + str(ZIP_PATH))
+        print("bytes: " + str(ZIP_PATH.stat().st_size))
+        print("MiniLM verified: " + str(proof["files_checked"]) + " files at " + str(proof["revision"]))
+        return 0
+    except (CheckpointError, OSError, ValueError, subprocess.SubprocessError, zipfile.BadZipFile):
+        print("Package validation failed; previous ZIP preserved. Verify the pinned sidecar with scripts/vendor_minilm.py before packing.", file=sys.stderr)
         return 1
-
-    if DIST.exists():
-        shutil.rmtree(DIST)
-    STAGE.mkdir(parents=True)
-
-    for rel in INCLUDE_FILES:
-        src = ROOT / rel
-        if src.is_file():
-            _copy_file(src, STAGE / rel)
-
-    for pattern in INCLUDE_GLOBS:
-        for src in ROOT.glob(pattern):
-            if src.is_file():
-                _copy_file(src, STAGE / src.relative_to(ROOT))
-
-    dest_models = STAGE / "models" / "all-MiniLM-L6-v2"
-    dest_models.mkdir(parents=True, exist_ok=True)
-    for name in MINILM_FILES:
-        src = snap / name
-        if not src.is_file():
-            print(f"missing MiniLM file {src}", file=sys.stderr)
-            return 1
-        shutil.copy2(src, dest_models / name)
-
-    with zipfile.ZipFile(ZIP_PATH, "w", zipfile.ZIP_DEFLATED) as zf:
-        for path in STAGE.rglob("*"):
-            if path.is_file():
-                zf.write(path, path.relative_to(DIST).as_posix())
-
-    weights = dest_models / "model.safetensors"
-    print(f"zip: {ZIP_PATH}")
-    print(f"bytes: {ZIP_PATH.stat().st_size}")
-    print(f"minilm: {weights.is_file()} {weights}")
-    return 0
 
 
 if __name__ == "__main__":

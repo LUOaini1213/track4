@@ -9,7 +9,6 @@ Devpost package if the scoring host may be offline.
 
 from __future__ import annotations
 
-import hashlib
 import sys
 from pathlib import Path
 
@@ -17,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from starter.shopping_agent.contest_checkpoint import MINILM_FILES, validate_checkpoint, CheckpointError, load_manifest
 from starter.shopping_agent.contest_dense import (  # noqa: E402
     DEFAULT_HUB_ID,
     HUB_REVISION,
@@ -25,15 +25,12 @@ from starter.shopping_agent.contest_dense import (  # noqa: E402
 )
 
 
-def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
 def main() -> int:
+    try:
+        load_manifest()
+    except CheckpointError as exc:
+        print("MiniLM trust validation failed: " + str(exc), file=sys.stderr)
+        return 1
     dest = snapshot_dir()
     dest.mkdir(parents=True, exist_ok=True)
     try:
@@ -46,6 +43,7 @@ def main() -> int:
             repo_id=DEFAULT_HUB_ID,
             revision=HUB_REVISION,
             local_dir=str(dest),
+            allow_patterns=list(MINILM_FILES),
             local_files_only=True,
         )
     except Exception:
@@ -53,23 +51,17 @@ def main() -> int:
             repo_id=DEFAULT_HUB_ID,
             revision=HUB_REVISION,
             local_dir=str(dest),
+            allow_patterns=list(MINILM_FILES),
         )
-    weights = dest / "model.safetensors"
-    if not weights.is_file():
-        weights = dest / "pytorch_model.bin"
-    if not weights.is_file():
-        print(f"download finished but no weights under {dest}", file=sys.stderr)
+    try:
+        proof = validate_checkpoint(dest)
+    except CheckpointError as exc:
+        print("MiniLM validation failed: " + str(exc), file=sys.stderr)
         return 1
-    digest = _sha256(weights)
-    print(f"snapshot: {dest}")
-    print(f"revision: {HUB_REVISION}")
-    print(f"{weights.name} sha256: {digest}")
-    if weights.name == "model.safetensors" and digest != WEIGHTS_SHA256:
-        print(
-            f"sha256 mismatch: expected {WEIGHTS_SHA256} (Hub LFS at {HUB_REVISION})",
-            file=sys.stderr,
-        )
-        return 1
+    print("snapshot: " + str(dest))
+    print("revision: " + str(proof["revision"]))
+    print("model.safetensors sha256: " + WEIGHTS_SHA256)
+    print("verified files: " + str(proof["files_checked"]))
     return 0
 
 
