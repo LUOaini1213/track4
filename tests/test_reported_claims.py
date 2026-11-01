@@ -333,10 +333,11 @@ class BranchTableTests(unittest.TestCase):
     """The Branches table must describe branches a reader can actually open.
 
     It used to list ``main`` as "Group integration" and send anyone looking for
-    the scored code to ``contest/public``, which 404s: this repository has only
-    ``main`` and ``v2/shelf-recall``. The check is deliberately offline --
-    ``git branch -r`` on the shallow single-branch CI checkout lists only the
-    branch being built, so it cannot be the source of truth here.
+    the scored code to ``contest/public``, which 404s: apart from pull-request
+    branches this repository has only ``main`` and ``v2/shelf-recall``. The
+    check is deliberately offline -- ``git branch -r`` on the shallow
+    single-branch CI checkout lists only the branch being built, so it cannot
+    be the source of truth here.
     """
 
     def setUp(self) -> None:

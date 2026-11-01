@@ -1,6 +1,6 @@
 # 提交说明（ContestAgent PUBLIC）
 
-> 提交时点记录，未按当前仓库改写：文中的仓库名与分支名（`contest/public`、`legacy/qwen`）是当时的叫法，本仓库现在只有 `main` 与 `v2/shelf-recall`，计分实现在 `main`。见 README 的 Branches 一节。
+> 提交时点记录，未按当前仓库改写：文中的仓库名与分支名（`contest/public`、`legacy/qwen`）是当时的叫法，本仓库除 PR 分支外只有 `main` 与 `v2/shelf-recall`，计分实现在 `main`。见 README 的 Branches 一节。
 
 官方要：可复现的 `Agent`、短报告、延迟 / token / 成本、一场多轮演示。计分入口是 `starter.agent.Agent`（ContestAgent + `PUBLIC`，`progress_defer="e123"`）。冻结说明见 `report/freeze.md`。
 

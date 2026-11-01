@@ -276,7 +276,8 @@ docs/                                competition specification, API contract, sc
 
 ## Branches
 
-This repository has two branches, and `main` is the one that was scored.
+Apart from pull-request branches, this repository has two branches, and `main`
+is the one that was scored.
 
 | Branch | `starter.agent.Agent` | Purpose |
 |---|---|---|

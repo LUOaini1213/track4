@@ -1,6 +1,6 @@
 # Submission freeze：E123 冻结配置
 
-> 提交时点记录，未按当前仓库改写：文中的仓库名与分支名（`contest/public`、`legacy/qwen`）是当时的叫法，本仓库现在只有 `main` 与 `v2/shelf-recall`，计分实现在 `main`。见 README 的 Branches 一节。
+> 提交时点记录，未按当前仓库改写：文中的仓库名与分支名（`contest/public`、`legacy/qwen`）是当时的叫法，本仓库除 PR 分支外只有 `main` 与 `v2/shelf-recall`，计分实现在 `main`。见 README 的 Branches 一节。
 
 E123 不再当实验版。只在 **正确性 bug** 或 **真正新的信息源** 时重开 PUBLIC。holdout 上 +0.0005 的新 heuristic 不碰冻结配置。**不要再优化 E123 或 `rank()`。**
 

@@ -1,9 +1,10 @@
 # Final submission package
 
 > Written at submission time and left unedited: the repository and branch names
-> in it (`contest/public`, `legacy/qwen`) are what they were called then. This
-> repository has only `main` and `v2/shelf-recall`, and `main` is the scored
-> branch. See the Branches section of the README.
+> in it (`contest/public`, `legacy/qwen`) are what they were called then. Apart
+> from pull-request branches, this repository has only `main` and
+> `v2/shelf-recall`, and `main` is the scored branch. See the Branches section
+> of the README.
 
 GitHub `contest/public` keeps the research trail. The **Devpost ZIP** is a clean scoring bundle. Do not delete holdout JSON from git just to look tidy.
 
