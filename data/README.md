@@ -38,4 +38,23 @@ Shoes and Jewelry metadata. See `DATA_ATTRIBUTION.md` and the upstream terms; th
 project does not grant rights to redistribute upstream data. For a runnable example
 without that data, use `python -S demo/fixture.py` from the repository root.
 
+## `catalog.mini.jsonl`
+
+A committed 1,631-row slice of the frozen catalog, about 2.2 MB, so that
+`demo/run_demo.py` and the test suite replay a real labelled session on a bare
+clone. `scripts/make_mini_catalog.py` builds it and keeps two things:
+
+- every row on the shelf — the coarse category exactly as `evaluator/local_evaluator.py`
+  derives it — of the four sessions `demo.run_demo.SCENARIO_DEFAULTS` points at
+  (`public_0001`, `public_0002`, `public_0007`, `public_0035`). Each of those
+  shelves holds more rows than `min_candidates`, so the candidate pool is never
+  padded from the rest of the catalog and those four sessions replay turn for
+  turn as they do on all 50,000 items;
+- the target row of all 200 public sessions, so `--session public_XXXX` always
+  resolves. Those other sessions are not pool-equivalent, and `run_demo.py` says
+  so before replaying one.
+
+It is a demo and test convenience. Scores are only ever computed on
+`catalog.jsonl`; a score computed on the slice means nothing.
+
 Never place API keys, private evaluation data, or participant outputs in this directory.

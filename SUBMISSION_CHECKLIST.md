@@ -1,5 +1,11 @@
 # Final submission package
 
+> Written at submission time and left unedited: the repository and branch names
+> in it (`contest/public`, `legacy/qwen`) are what they were called then. Apart
+> from pull-request branches, this repository has only `main` and
+> `v2/shelf-recall`, and `main` is the scored branch. See the Branches section
+> of the README.
+
 GitHub `contest/public` keeps the research trail. The **Devpost ZIP** is a clean scoring bundle. Do not delete holdout JSON from git just to look tidy.
 
 Video and captions **must not embed a commit SHA**. Use:
@@ -17,11 +23,11 @@ Fill `git rev-parse HEAD` on Devpost **on the submit day**.
 | `evaluator/local_evaluator.py` | Unmodified official harness |
 | `README.md` | How to run |
 | `requirements.txt` | Python 3.10+; MiniLM extras commented |
-| `report/freeze.md` | Champion numbers, gates, MiniLM dependency |
+| `report/freeze.md` | Frozen-configuration numbers, gates, MiniLM dependency |
 | `report/architecture.md` | VoI controller diagram |
 | `report/submit.md` | Cost / latency / fallback |
 | `models/README.md` | Pinned MiniLM revision |
-| **`models/all-MiniLM-L6-v2/`** | **Champion encoder. Not in git. Must be in the ZIP.** |
+| **`models/all-MiniLM-L6-v2/`** | **Encoder of the frozen configuration. Not in git. Must be in the ZIP.** |
 | `scripts/vendor_minilm.py` | Rebuild sidecar if needed |
 | `demo/run_demo.py` | One multi-turn session |
 | `docs/agent_api_contract.json` | Contract |

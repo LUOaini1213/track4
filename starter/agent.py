@@ -1,8 +1,9 @@
 """Evaluator entry: ``Agent`` is ContestAgent PUBLIC.
 
 ``python -m evaluator.local_evaluator`` and ``eval_contest.py`` load this
-``Agent``. The Qwen / adaptive-recall pipeline is ``LegacyAgent`` and lives
-for tests; continue that experiment on branch ``legacy/qwen``.
+``Agent``. The Qwen / adaptive-recall pipeline is ``LegacyAgent``, kept for
+tests; the teammate branch that continued it is not published in this
+repository.
 """
 
 from __future__ import annotations

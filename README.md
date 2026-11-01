@@ -28,6 +28,30 @@ produces **+60 rank-1 recommendations with zero Hit-rate loss**, improving on
 `TechnicalScore = 0.50 × Hit@10 + 0.30 × MRR + 0.20 × Efficiency`, where
 `Efficiency = clip((11 - MTTC) / 10, 0, 1)`.
 
+Each row comes from exactly one committed file:
+
+| Row | Source of every number in it |
+|---|---|
+| Public (labelled) | `results_contest_public.json` |
+| Our ID-disjoint holdout | `holdout/ours_holdout.json` |
+| Random 800, 8×100 shards | `holdout/shards/a_vs_e123.json` → `pooled_mean_of_shards.e123` |
+| Weak BM25 starter (reference) | `docs/baseline_results.json` |
+
+`tests/test_reported_claims.py` reparses this README together with that source
+table and checks every cell against the declared file: the Public and holdout
+aggregates are recomputed from their 200 per-session records through
+`evaluator.local_evaluator.metric_summary`, the Random-800 row from its eight
+per-shard records. Rank-1 exists only in the per-session records and is always
+recounted. Changing a digit in the score table, pointing a row at a different
+file, or letting a result file drift turns the CI badge red.
+
+Two older artifacts in `holdout/` measure the same 800 sessions under an earlier
+configuration and are **superseded**: `holdout/shards/out_0..7.json` and
+`holdout/random800_compare.json` pool to Hit 0.9725 / MRR 0.824885 / MTTC 2.69125
+/ TechnicalScore 0.89989, recorded before the E123 freeze commit `3a31ace`. They
+are kept as the research trail, not as the reported result; each now carries a
+`snapshot` field saying so.
+
 Every number above was produced with `usage = 0 prompt tokens, 0 completion tokens`.
 The public-set score is **not** a prediction for the organizer's private 800 sessions;
 that is why we built our own ID-disjoint holdout and an 8-shard robustness study.
@@ -43,9 +67,24 @@ Start here without the catalog, API keys, models or third-party packages:
 # This demonstrates the runtime; it does not reproduce the 50,000-item score.
 python -S demo/fixture.py
 
-# Full test suite: 164 tests; the staged-ZIP check skips until a ZIP is built.
+# Replay a real labelled session end to end, on the committed catalog slice.
+python -S demo/run_demo.py --session public_0002   # Intent Override
+python -S demo/run_demo.py --scenario browsing     # public_0007
+
+# Full test suite: 182 tests; the staged-ZIP check skips until a ZIP is built.
 python -S -m unittest discover -s tests -v
 ```
+
+`demo/run_demo.py` uses `data/catalog.jsonl` when that file is present and
+otherwise falls back to `data/catalog.mini.jsonl` (1,631 rows, 2.2 MB, committed),
+naming on its first line the file it actually read. The slice keeps the complete
+shelf of the four sessions the script defaults to — `public_0001`, `public_0002`,
+`public_0007`, `public_0035` — and each of those shelves is larger than
+`min_candidates`, so the candidate pool is never padded from the rest of the
+catalog and the four replay turn for turn as they do on the full 50,000 items.
+Any other session also runs and the script says it is not pool-equivalent; a
+score computed on the slice means nothing. `scripts/make_mini_catalog.py`
+rebuilds the slice from the frozen catalog.
 
 Full public-set scoring additionally requires the organizer's frozen 50,000-item
 `data/catalog.jsonl`. Obtain the original competition file from the organizer or
@@ -65,9 +104,8 @@ python -S scripts/import_catalog.py "/path/to/original/catalog.jsonl.gz"
 python -S -m evaluator.local_evaluator --catalog data/catalog.jsonl \
     --dataset data/public_set.jsonl --output results.json
 
-# Watch one full-catalog session end to end.
+# With the frozen catalog in place, the same replay runs on all 50,000 items.
 python -S demo/run_demo.py --session public_0002   # Intent Override
-python -S demo/run_demo.py --scenario buying
 ```
 
 The fixture tests need no environment variables and run without model packages.
@@ -144,7 +182,7 @@ disable it; our scored path is unaffected because the encoder ships with the bun
 
 ### MiniLM is a scoring dependency, not an optional extra
 
-The champion numbers use `sentence-transformers/all-MiniLM-L6-v2` at revision
+The frozen configuration's numbers use `sentence-transformers/all-MiniLM-L6-v2` at revision
 `c9745ed1d9f207416be6d2e6f8de32d1f16199bf` (Apache-2.0), with `model.safetensors`
 sha256 `53aa51172d142c89d9012cce15ae4d6cc0ca6895895114379cacb4fab128d9db`.
 
@@ -238,11 +276,21 @@ docs/                                competition specification, API contract, sc
 
 ## Branches
 
+Apart from pull-request branches, this repository has two branches, and `main`
+is the one that was scored.
+
 | Branch | `starter.agent.Agent` | Purpose |
 |---|---|---|
-| `contest/public` | ContestAgent PUBLIC | **Submission and scoring** |
-| `main` | — | Group integration |
-| `legacy/qwen` | Retrieval + Qwen reranker | Teammate experiment, not loaded by the evaluator |
+| `main` | ContestAgent PUBLIC | **The scored implementation.** Every number in this README was produced by this code |
+| `v2/shelf-recall` | ContestAgent PUBLIC + a shelf-recall experiment | Later experiment, kept for the record; no reported number comes from it |
+
+Four documents were written at submission time and still name the branch
+`contest/public`, a teammate branch `legacy/qwen`, and an earlier repository
+name: `report/freeze.md`, `report/submit.md`, `SUBMISSION_CHECKLIST.md` and
+`report/devpost_description.md`. Neither of those branches is published here.
+Those files are left as they were written, each with a note at the top, because
+they are the record of what was submitted rather than a description of the
+repository today.
 
 The scored configuration is frozen. `report/freeze.md` records the algorithm-freeze
 commit and the gates that would be required to reopen it.

@@ -1,6 +1,6 @@
 # MiniLM sidecar（计分依赖，不是可选增强）
 
-Champion 数字（Public `0.95125` / Holdout Hit `0.980`）用的是本地
+冻结配置的数字（Public `0.95125` / Holdout Hit `0.980`）用的是本地
 `sentence-transformers/all-MiniLM-L6-v2`，钉死 revision：
 
 ```text
@@ -41,7 +41,7 @@ python scripts/vendor_minilm.py
 53aa51172d142c89d9012cce15ae4d6cc0ca6895895114379cacb4fab128d9db
 ```
 
-`python scripts/vendor_minilm.py` 必须打印这个值。本机 Hugging Face 缓存里曾有一份小 64 字节的副本（`c24bb44a…` / 90,868,312）；冠军 eval 走的是缓存。sidecar 以 Hub 为准，不是换 encoder。不要去追浮动的 `main`。
+`python scripts/vendor_minilm.py` 必须打印这个值。本机 Hugging Face 缓存里曾有一份小 64 字节的副本（`c24bb44a…` / 90,868,312）；冻结配置那次 eval 走的是缓存。sidecar 以 Hub 为准，不是换 encoder。不要去追浮动的 `main`。
 
 ## 完整性校验（不改历史成绩）
 

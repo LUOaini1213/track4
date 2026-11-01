@@ -1,14 +1,19 @@
 # 报告目录（ContestAgent PUBLIC）
 
-计分实现：`starter/shopping_agent/contest_*.py`。评估器加载的 `starter.agent.Agent` 就是它。组员 Qwen 实验见分支 `legacy/qwen`。
+计分实现：`starter/shopping_agent/contest_*.py`。评估器加载的 `starter.agent.Agent` 就是它。组员的 Qwen 实验分支 `legacy/qwen` 未随本仓公开，评估器也不加载它。
 
 ## 当前分数
 
 | 集合 | n | Hit@10 | MRR | MTTC | 技术分 | 说明 |
 |---|---:|---:|---:|---:|---:|---|
 | 公开 200 | 200 | 1.000 | 0.9542 | 2.75 | **0.95125** | `results_contest_public.json`，0 token |
-| ID-holdout 200 | 200 | 0.980 | 0.8648 | 2.885 | **0.9118** | 排除公开集 asin，不是官方私有 800 |
-| 随机 800 | 800 | 0.9725 | 0.8249 | 2.691 | **0.89989** | 8×100 并行；**跳过泛约束 MiniLM 之前**的快照 |
+| ID-holdout 200 | 200 | 0.980 | 0.8648 | 2.885 | **0.9118** | `holdout/ours_holdout.json`；排除公开集 asin，不是官方私有 800 |
+| 随机 800 | 800 | 0.97375 | 0.8880 | 2.8975 | **0.91533** | `holdout/shards/a_vs_e123.json` 的 `pooled_mean_of_shards.e123`，8×100 并行 |
+
+随机 800 这一行以前引的是 `holdout/shards/out_0..7.json` / `holdout/random800_compare.json`
+的 0.9725 / 0.8249 / 2.691 / **0.89989**。那两份是 E123 冻结（`3a31ace`）之前、跳过泛约束
+MiniLM 那一版的快照，已被 `a_vs_e123.json` 取代；两份文件各自的 `snapshot` 字段现在会自己
+说明这件事。英文主 README 的表也报同一个 0.91533，并列出每行的唯一出处。
 
 技术分 = `0.50×Hit + 0.30×MRR + 0.20×Efficiency`。**E123 已冻结为提交候选**（`report/freeze.md`）。下一闸 > 0.911753 **只接受正确性 bug 或新信息源**，不为 holdout 上 +0.0005 的 heuristic 改 PUBLIC。
 
@@ -42,4 +47,4 @@ python demo/run_demo.py --session public_0002
 python -m unittest discover -s tests -v
 ```
 
-协议骨架（不要为公开集再拧）：永远问 `other`、逐字 AND、`gate_size=5`、Override 前不出表、`dump_slots=4`。3 槽 field-flat 再问一轮（`ambiguity_defer=a`）。Buying/Browsing 在池 ≤5 但槽未满、或 3 槽 leftover 时再问一轮（`progress_defer=e123`，一次性）。MiniLM 只在有区分项的硬池上。硬池精确行 `w_field=0.35`，标题短语 `w_phrase=0.15`。缺权重则 dense 为 0（Holdout Hit 0.975，不是冠军路径）。
+协议骨架（不要为公开集再拧）：永远问 `other`、逐字 AND、`gate_size=5`、Override 前不出表、`dump_slots=4`。3 槽 field-flat 再问一轮（`ambiguity_defer=a`）。Buying/Browsing 在池 ≤5 但槽未满、或 3 槽 leftover 时再问一轮（`progress_defer=e123`，一次性）。MiniLM 只在有区分项的硬池上。硬池精确行 `w_field=0.35`，标题短语 `w_phrase=0.15`。缺权重则 dense 为 0（Holdout Hit 0.975，不是冻结配置路径）。

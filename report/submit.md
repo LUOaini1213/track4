@@ -1,10 +1,12 @@
 # 提交说明（ContestAgent PUBLIC）
 
+> 提交时点记录，未按当前仓库改写：文中的仓库名与分支名（`contest/public`、`legacy/qwen`）是当时的叫法，本仓库除 PR 分支外只有 `main` 与 `v2/shelf-recall`，计分实现在 `main`。见 README 的 Branches 一节。
+
 官方要：可复现的 `Agent`、短报告、延迟 / token / 成本、一场多轮演示。计分入口是 `starter.agent.Agent`（ContestAgent + `PUBLIC`，`progress_defer="e123"`）。冻结说明见 `report/freeze.md`。
 
 ## 怎么跑
 
-Python 3.10+。无 MiniLM 时计分路径只依赖标准库（能跑，Holdout Hit 0.975）。冠军数字需要同一份 MiniLM。
+Python 3.10+。无 MiniLM 时计分路径只依赖标准库（能跑，Holdout Hit 0.975）。冻结配置的数字需要同一份 MiniLM。
 
 ```bash
 gzip -dc catalog.jsonl.gz > data/catalog.jsonl   # 发布包，见 SHA256SUMS
@@ -26,7 +28,7 @@ MiniLM（提交正确性依赖，不是性能等价 fallback）：`sentence-tran
 | Listwise LLM | 默认关；出表短名单才调 | 按 token | 超时/无密钥退回 0-token 排序 |
 | DeepSeek / Qwen 问句 | 不计分 | — | 不要改 `ask_attribute` |
 
-公开 200 次评估：`usage` **0 token**。本机 Windows、catalog 5 万条：索引约 8s，200 会话约 35s（约 0.2s/会话，含 MiniLM）。无 MiniLM 时会话循环更快；公开分接近，但 holdout 会掉 `0090`（Hit 0.975），不要把这条路径报成冠军。
+公开 200 次评估：`usage` **0 token**。本机 Windows、catalog 5 万条：索引约 8s，200 会话约 35s（约 0.2s/会话，含 MiniLM）。无 MiniLM 时会话循环更快；公开分接近，但 holdout 会掉 `0090`（Hit 0.975），不要把这条路径报成冻结配置的数字。
 
 ## 演示会话
 

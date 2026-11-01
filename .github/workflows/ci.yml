@@ -26,7 +26,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Reported numbers recomputed from committed sessions
+        run: python -S -m unittest tests.test_reported_claims -v
       - name: Standard-library tests without catalog or keys
         run: python -S -m unittest discover -s tests -v
       - name: Synthetic shopping dialogue
         run: python -S demo/fixture.py
+      - name: Labelled session replayed on the committed catalog slice
+        run: python -S demo/run_demo.py --session public_0002
