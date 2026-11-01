@@ -71,7 +71,7 @@ python -S demo/fixture.py
 python -S demo/run_demo.py --session public_0002   # Intent Override
 python -S demo/run_demo.py --scenario browsing     # public_0007
 
-# Full test suite: 163 tests; the staged-ZIP check skips until a ZIP is built.
+# Full test suite: 182 tests; the staged-ZIP check skips until a ZIP is built.
 python -S -m unittest discover -s tests -v
 ```
 
@@ -199,6 +199,13 @@ If the weights are absent the agent **still runs**, but it is **not score-equiva
 
 The Value-of-Information stopping behaviour does not depend on MiniLM; public MTTC
 stays at 2.75 either way. Force the offline path with `TECHJAM_DENSE_OFFLINE=1`.
+
+The loader and submission packer now share a code-bound, official-revision
+manifest for the six MiniLM load files. Invalid local assets are rejected before
+model import and reported as `nodense` diagnostics; that fallback is not score
+equivalence. Packing validates copied assets and staged imports before atomically
+replacing a ZIP, preserving the old ZIP on failure. These offline integrity checks
+do not remeasure the historical scores. See [manifest and boundaries](models/README.md#完整性校验不改历史成绩).
 
 ### Optional tiered model backend (off by default)
 

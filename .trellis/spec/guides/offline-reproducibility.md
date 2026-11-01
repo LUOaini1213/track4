@@ -41,3 +41,16 @@
 - [ ] 报告模型、近似成本、token、延迟、限制和网络需求。
 
 关联的提交内容边界见 [数据与提交规则](../data-contracts/jsonl-privacy-submission.md)，协议正确性见 [评估协议](../evaluator/protocol-and-scoring.md)。
+
+## MiniLM checkpoint identity
+
+Runtime and submission packing share `contest_checkpoint.validate_checkpoint`. The code-bound
+`models/minilm-manifest.json` is derived from the fixed official Hub revision; do not authorize
+unknown local weights by generating a new local manifest. All six required load files are
+checked before model import. Invalid explicit local sources are terminal nodense diagnostics,
+not silent source changes. Cache/Hub resolve uses the pinned revision and required-file list.
+
+Pack into a temporary generated directory, revalidate copied assets and the stdlib Agent import,
+then atomically replace the ZIP. Failure must preserve the previous ZIP; do not delete the
+whole `submission_dist`. Synthetic test manifests verify guard paths only and must never be
+described as real checkpoint, encoder-forward or score-equivalence evidence.

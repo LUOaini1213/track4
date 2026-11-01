@@ -1,0 +1,8 @@
+{
+  "name": "minilm-integrity",
+  "title": "Verify the frozen MiniLM checkpoint before loading and packaging",
+  "status": "completed",
+  "branch": "codex/track4-minilm-integrity-20261012",
+  "base_branch": "main",
+  "authorization": "User explicitly requested implementation of the reviewed integrity defect; no publication authorized."
+}

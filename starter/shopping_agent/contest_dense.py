@@ -16,15 +16,12 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 
 from .contest_index import ContestIndex
+from .contest_checkpoint import (CheckpointError, DEFAULT_HUB_ID, HUB_REVISION,
+    WEIGHTS_SHA256, MINILM_FILES, validate_checkpoint, load_manifest)
 from .contest_slots import ContestState
 
 EncodeFn = Callable[[list[str]], list[list[float]]]
 
-# Same checkpoint that produced Holdout Hit 0.980 / Public 0.95125.
-DEFAULT_HUB_ID = "sentence-transformers/all-MiniLM-L6-v2"
-HUB_REVISION = "c9745ed1d9f207416be6d2e6f8de32d1f16199bf"
-# Hub LFS oid for model.safetensors at HUB_REVISION (90,868,376 bytes).
-WEIGHTS_SHA256 = "53aa51172d142c89d9012cce15ae4d6cc0ca6895895114379cacb4fab128d9db"
 SNAPSHOT_RELATIVE = Path("models") / "all-MiniLM-L6-v2"
 
 
@@ -37,22 +34,23 @@ def snapshot_dir() -> Path:
 
 
 def is_transformers_dir(path: Path) -> bool:
-    if not path.is_dir():
+    try:
+        validate_checkpoint(path)
+        return True
+    except CheckpointError:
         return False
-    if not (path / "config.json").is_file():
-        return False
-    return (path / "model.safetensors").is_file() or (path / "pytorch_model.bin").is_file()
 
 
 def resolve_model_source() -> str:
-    """Prefer a local snapshot; otherwise the pinned Hub id."""
+    """An explicitly selected invalid local source fails, rather than changing encoder."""
     env = (os.environ.get("TECHJAM_DENSE_HOME") or "").strip()
     if env:
         candidate = Path(env).expanduser()
-        if is_transformers_dir(candidate):
-            return str(candidate)
+        validate_checkpoint(candidate)
+        return str(candidate)
     snap = snapshot_dir()
-    if is_transformers_dir(snap):
+    if snap.exists():
+        validate_checkpoint(snap)
         return str(snap)
     return DEFAULT_HUB_ID
 
@@ -73,6 +71,7 @@ class PoolDenseEncoder:
         self._tokenizer = None
         self._model = None
         self._torch = None
+        self.diagnostics: dict[str, object] = {"mode": "injected" if encode is not None else "not_loaded"}
 
     def available(self) -> bool:
         if self.encode is not None:
@@ -89,32 +88,46 @@ class PoolDenseEncoder:
             return self.model_name
         return resolve_model_source()
 
-    def _source_is_local_dir(self) -> bool:
-        try:
-            return Path(self._source()).is_dir()
-        except OSError:
-            return False
-
     def _load_transformers(self, local_files_only: bool):
+        load_manifest()  # fail before any cache/network resolver if trust data is absent
+        source = self._source()
+        if source == DEFAULT_HUB_ID:
+            from huggingface_hub import snapshot_download
+            source = snapshot_download(repo_id=DEFAULT_HUB_ID, revision=HUB_REVISION,
+                allow_patterns=list(MINILM_FILES), local_files_only=local_files_only)
+        elif not Path(source).is_dir():
+            raise CheckpointError("Custom MiniLM model IDs are not a frozen checkpoint")
+        proof = validate_checkpoint(source)
+        # Validate before importing any model package; corrupted data cannot reach a loader.
         import torch
         from transformers import AutoModel, AutoTokenizer
-
-        source = self._source()
-        kwargs: dict[str, object] = {"local_files_only": local_files_only}
-        if not Path(source).is_dir():
-            kwargs["revision"] = HUB_REVISION
-        tokenizer = AutoTokenizer.from_pretrained(source, **kwargs)
-        model = AutoModel.from_pretrained(source, **kwargs)
+        tokenizer = AutoTokenizer.from_pretrained(source, local_files_only=True,
+            revision=HUB_REVISION, trust_remote_code=False)
+        model = AutoModel.from_pretrained(source, local_files_only=True,
+            revision=HUB_REVISION, use_safetensors=True, trust_remote_code=False)
         model.eval()
+        self.diagnostics = dict(proof, mode="verified_dense")
         return tokenizer, model, torch
 
     def _ensure(self) -> None:
         if self._ready is not None:
             return
-        attempts = (True,) if (self._offline_only() or self._source_is_local_dir()) else (True, False)
+        # Source validation errors are terminal for this instance. An invalid explicit
+        # local directory must not trigger a network request or another checkpoint.
+        try:
+            source = self._source()
+        except CheckpointError as exc:
+            self.diagnostics = {"mode": "nodense", "reason": str(exc)}
+            self._ready = False
+            return
+        attempts = (True,) if (self._offline_only() or Path(source).is_dir()) else (True, False)
         for local_only in attempts:
             try:
                 tokenizer, model, torch = self._load_transformers(local_only)
+            except CheckpointError as exc:
+                self.diagnostics = {"mode": "nodense", "reason": str(exc)}
+                self._ready = False
+                return
             except Exception:
                 continue
             self._tokenizer = tokenizer
@@ -122,6 +135,7 @@ class PoolDenseEncoder:
             self._torch = torch
             self._ready = True
             return
+        self.diagnostics = {"mode": "nodense", "reason": "Pinned MiniLM assets or model dependencies unavailable"}
         self._ready = False
 
     def _embed_batch(self, texts: list[str]) -> list[list[float]]:
