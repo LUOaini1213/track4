@@ -23,7 +23,7 @@
 
 ```text
 python eval_holdout.py
-python eval_shard.py --dataset holdout/shards/shard_0.jsonl --output holdout/shards/out_0.json
+PYTHONHASHSEED=0 python eval_shard.py --arm e123 --dataset holdout/shards/shard_0.jsonl --output holdout/shards/hashseed0/e123/out_0.json
 ```
 
 工件：`holdout/holdout_200.jsonl`、`holdout/holdout_compare.json`、`holdout/random_800.jsonl`、`holdout/random800_compare.json`。

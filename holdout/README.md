@@ -8,16 +8,19 @@
 |---|---|
 | `holdout_200.jsonl` | ID-holdout 200：80/80/30/10，seed 2026 |
 | `ours_holdout.json` | 当前 PUBLIC（e123）在 holdout 200：Hit 0.980 / **0.911753** |
-| `shards/a_vs_e123.json` | 8×100：A vs e123，**8/8 e123 更高** |
+| `shards/a_vs_e123.json` | 8×100：A vs e123，**8/8 e123 更高**（每片汇总） |
+| `shards/hashseed0/{A,e123}/out_0..7.json` | 2026-11-03 按 `PYTHONHASHSEED=0` 重跑两臂的逐会话输出（`eval_shard.py --arm A\|e123`） |
+| `shards/hashseed3/{A,e123}/out_0..7.json` | 同上，`PYTHONHASHSEED=3`；两次重跑的 rank1 每片都与汇总表一致，个别会话名次因哈希序并列打破而不同 |
 | `holdout_compare.json` | 我们 vs 同学 structured（同学 holdout 当时无 LLM） |
 | `random_800.jsonl` | 320/320/120/40，seed 见生成脚本，与公开 asin 不交 |
 | `random800_compare.json` | 8 路合并：Hit 0.9725 / 0.89989（**旧配置快照**） |
 | `shards/shard_0.jsonl` … `shard_7.jsonl` | 各 100 条 |
-| `shards/out_0.json` … `out_7.json` | 各片 `eval_shard.py` 输出 |
 
 `ours_holdout.json` 与 `holdout_skip_floor.json` 是同一轮（泛约束跳过 MiniLM + 锁热度）。
 
 ## 消融残骸（不要当当前分数）
+
+- `shards/pre_freeze/out_0.json` … `out_7.json` — E123 冻结（`3a31ace`）之前的旧配置逐片输出，与 `random800_compare.json` 同一版，已被 `shards/a_vs_e123.json` 与 `shards/hashseed*/` 取代
 
 这些是试热度锁 / RRF / 只跳过 MiniLM 时的完整 payload，**没有**写进 PUBLIC：
 
@@ -30,5 +33,6 @@
 
 ```bash
 python eval_holdout.py
-python eval_shard.py --dataset holdout/shards/shard_0.jsonl --output holdout/shards/out_0.json
+PYTHONHASHSEED=0 python eval_shard.py --arm e123 --dataset holdout/shards/shard_0.jsonl --output holdout/shards/hashseed0/e123/out_0.json
+PYTHONHASHSEED=0 python eval_shard.py --arm A    --dataset holdout/shards/shard_0.jsonl --output holdout/shards/hashseed0/A/out_0.json
 ```
