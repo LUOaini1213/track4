@@ -62,11 +62,13 @@ def offending_lines(text: str) -> list[tuple[int, str]]:
 
 class NoLocalPathTests(unittest.TestCase):
     def test_pattern_catches_the_forms_it_guards(self) -> None:
+        # Built from pieces so that this file does not trip its own scan.
+        drive, users, home = "C:", "Users", "home"
         for sample in (
-            r'cd "C:\Users\someone\Desktop\repo"',
-            "C:/Users/someone/repo",
-            "see /Users/someone/Downloads/kit/",
-            "/home/someone/work/",
+            f'cd "{drive}\\{users}\\someone\\Desktop\\repo"',
+            f"{drive}/{users}/someone/repo",
+            f"see /{users}/someone/Downloads/kit/",
+            f"/{home}/someone/work/",
         ):
             with self.subTest(sample=sample):
                 self.assertTrue(offending_lines(sample), sample)
