@@ -10,7 +10,7 @@
 | ID-holdout 200 | 200 | 0.980 | 0.8648 | 2.885 | **0.9118** | `holdout/ours_holdout.json`；排除公开集 asin，不是官方私有 800 |
 | 随机 800 | 800 | 0.97375 | 0.8880 | 2.8975 | **0.91533** | `holdout/shards/a_vs_e123.json` 的 `pooled_mean_of_shards.e123`，8×100 并行 |
 
-随机 800 这一行以前引的是 `holdout/shards/out_0..7.json` / `holdout/random800_compare.json`
+随机 800 这一行以前引的是 `holdout/shards/pre_freeze/out_0..7.json`（原 `holdout/shards/out_0..7.json`）/ `holdout/random800_compare.json`
 的 0.9725 / 0.8249 / 2.691 / **0.89989**。那两份是 E123 冻结（`3a31ace`）之前、跳过泛约束
 MiniLM 那一版的快照，已被 `a_vs_e123.json` 取代；两份文件各自的 `snapshot` 字段现在会自己
 说明这件事。英文主 README 的表也报同一个 0.91533，并列出每行的唯一出处。

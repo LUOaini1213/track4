@@ -1,5 +1,17 @@
 # TechJam 2026 Track 4 — 参赛方法报告（公开 200 集）
 
+> **English summary.** A method log for the public 200 sessions: which
+> published conversational-search ideas fit this simulator, and the measured
+> keep/reject decision for each ablation (columns: Hit@10, MRR, MTTC,
+> TechnicalScore, change against the floor at the time, decision). Kept: the
+> exact feature/details line bonus, the distinctive title phrase bonus, the
+> 3-slot field-flat extra question (`ambiguity_defer="a"`) and the E1+E2+E3
+> stopping rules (`progress_defer="e123"`, the frozen PUBLIC config). Rejected:
+> RRF, BM25 and title-token re-weighting, LLM listwise rerank, FlashRank,
+> popularity-head guards and the ambiguity variants B/C/D, each for losing Hit,
+> losing on the holdout, or changing nothing. Rows are logged results; per-session payloads
+> are committed only for the runs listed in `holdout/README.md`.
+
 本文记录：网上查到的会话式商品搜索方法、它们和本赛模拟器的匹配关系、以及在冻结 `data/public_set.jsonl`（200 条）+ `data/catalog.jsonl`（50k）上的实测去留。官方评估器、`docs/`、公开集和目录均未改。计分路径全程内存、离线、0 token。
 
 **当前公开集地板（改 PUBLIC 默认之前）**

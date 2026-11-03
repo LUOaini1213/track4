@@ -1,3 +1,13 @@
+# Text is stored and checked out with LF on every platform; media stays binary.
+* text=auto eol=lf
+*.mp4 binary
+*.pptx binary
+*.png binary
+*.jpg binary
+*.pdf binary
+*.gz binary
+*.zip binary
+
 # Trellis: append-only developer journals should merge cleanly across
 # parallel sessions/worktrees — each session only appends a new block, so
 # there is nothing to actually conflict on.

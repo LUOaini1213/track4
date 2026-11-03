@@ -1,5 +1,14 @@
 # MiniLM sidecar（计分依赖，不是可选增强）
 
+> **English summary.** The frozen scores use
+> `sentence-transformers/all-MiniLM-L6-v2` at a pinned revision as a late-fusion
+> tie-breaker, so the weights are a scoring dependency. Load order:
+> `TECHJAM_DENSE_HOME` → the bundled `models/all-MiniLM-L6-v2` sidecar →
+> Hugging Face cache → the same pinned revision from the Hub. Without the
+> weights the agent still runs but is not score-equivalent (see the README
+> table). The loader and packer check every file against
+> `models/minilm-manifest.json` before use. The weights are not committed.
+
 冻结配置的数字（Public `0.95125` / Holdout Hit `0.980`）用的是本地
 `sentence-transformers/all-MiniLM-L6-v2`，钉死 revision：
 

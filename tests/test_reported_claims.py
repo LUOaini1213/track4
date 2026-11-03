@@ -289,7 +289,7 @@ class SupersededSnapshotTests(unittest.TestCase):
     """The two older 800-session artifacts, and what README.md says about them."""
 
     def setUp(self) -> None:
-        self.shards = [load(ROOT / "holdout" / "shards" / f"out_{i}.json") for i in range(8)]
+        self.shards = [load(ROOT / "holdout" / "shards" / "pre_freeze" / f"out_{i}.json") for i in range(8)]
         self.compare = load(ROOT / "holdout" / "random800_compare.json")
         self.paragraph = " ".join(
             README.split("Two older artifacts", 1)[1].split("\n\n", 1)[0].split()

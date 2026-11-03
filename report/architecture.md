@@ -1,5 +1,13 @@
 # ContestAgent 架构（计分路径）
 
+> **English summary.** The scored path: `starter.agent.Agent` →
+> `ContestAgent` with the `PUBLIC` config, in five stages (dialogue state,
+> exact-evidence AND filter, stop/ask controller, popularity-first late fusion,
+> optional listwise LLM that is off by default). It also lists what was taken
+> from the team's earlier single-agent pipeline (override scoping, response
+> guard, offline model contract) and what was deliberately left out (BM25/FTS
+> retrieval, title coverage), and the ranking defaults that must not change.
+
 评估器加载的是 `starter.agent.Agent` → `ContestAgent` + `PUBLIC`。组仓库 `main` 上的单 Agent
 检索管线是另一条实现；本分支只吸收它的**状态分档、响应守卫、离线契约**，不吸收 BM25/FTS/标题覆盖。
 

@@ -1,5 +1,19 @@
 # Shard robustness：E123 vs A
 
+> **English summary.** Eight shards of 100 sessions each, cut from
+> `holdout/random_800.jsonl`; no target is shared with the public 200 and no
+> session is shared between shards. Config A is the frozen agent with the
+> E1/E2/E3 extra-question rules off (`ambiguity_defer="a"`, `progress_defer=""`);
+> e123 is the frozen PUBLIC config. e123 scores higher on 8 of 8 shards. Hit@10
+> is identical on every shard; the gain is MRR (pooled 0.8439 → 0.8880) and
+> rank-1 (612 → 672), and the cost is MTTC (2.71 → 2.90 turns). The table
+> below is `holdout/shards/a_vs_e123.json`, checked by
+> `tests/test_shard_sessions.py`. Per-session records for both arms come from
+> two seeded reruns (`holdout/shards/hashseed0/`, `hashseed3/`); they reproduce
+> every rank-1 count and the 8/8 direction, while a few sessions end at a
+> different rank because ties follow Python's string-hash order. The
+> organizer's private 800 sessions were never seen.
+
 8×100，来自 `holdout/random_800.jsonl` 切分。与公开 200 asin **不交**，shard 之间 **不交**。A = `ambiguity_defer=a` 且 `progress_defer=""`；e123 = 当前 PUBLIC。原始表：`holdout/shards/a_vs_e123.json`。
 
 **e123 在 8/8 shard 上 TechnicalScore 更高。** 每片 Hit 与 A 完全相同；涨的是 MRR，税是 MTTC。

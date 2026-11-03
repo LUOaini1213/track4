@@ -1,5 +1,15 @@
 # Policy attribution：E1 / E2 / E3
 
+> **English summary.** Per-rule attribution of the three stopping rules
+> on the holdout 200, each measured alone and then combined, against the floor
+> config A (`ambiguity_defer="a"`, `progress_defer=""`). E1 targets Buying
+> sessions, E2 Browsing sessions, E3 three-slot sessions with a large pool;
+> together they ask for at most one extra `other` per session. Their MRR and MTTC changes add up
+> almost exactly, so they fire on nearly disjoint sessions. Combined (e123) the
+> holdout TechnicalScore goes from 0.898718 to 0.911753 and rank-1 from 145 to
+> 162; the one regression is session `holdout_0141`, which falls from rank 1 to
+> rank 2.
+
 对照地板：`ambiguity_defer=a`、`progress_defer=""`。Holdout 200：Hit 0.980 / MRR 0.80806 / MTTC 2.685 / **0.898718** / rank1 145。
 
 三刀**单独**过闸后再组合。Holdout 上 ΔMRR、ΔMTTC 几乎精确可加，说明开火集合基本不交。
