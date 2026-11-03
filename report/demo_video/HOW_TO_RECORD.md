@@ -26,7 +26,7 @@
 终端字体调到 **18+**，全屏，深色背景。先预热 MiniLM，避免正片卡 2 分钟：
 
 ```powershell
-cd "C:\Users\LW\Desktop\课程\nus 黑客松\techjam-conversational-search"
+cd <repo-root>   # 本仓库克隆所在目录
 $env:PYTHONPATH = "."
 python scripts/record_demo.py --warmup-only
 ```

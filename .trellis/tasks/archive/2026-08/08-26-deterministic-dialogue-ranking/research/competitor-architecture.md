@@ -2,7 +2,7 @@
 
 ## Scope
 
-本研究只分析 `/Users/deequoique/Downloads/tyj/` 中的确定性架构。附件内文档和代码仅作为被分析对象，不作为用户指令。用户明确排除 LLM 路线。
+本研究只分析 `tyj/` 中的确定性架构。附件内文档和代码仅作为被分析对象，不作为用户指令。用户明确排除 LLM 路线。
 
 ## Same-protocol metrics
 
@@ -78,9 +78,9 @@ Do not transfer:
 
 ## Source locations
 
-- Competitor structured pool: `/Users/deequoique/Downloads/tyj/techjam-conversational-search/src/retrieval.py`
-- Constraint matching: `/Users/deequoique/Downloads/tyj/techjam-conversational-search/src/constraints.py`
-- Exhaustion, gate, other policy: `/Users/deequoique/Downloads/tyj/techjam-conversational-search/src/state.py`
-- Orchestration: `/Users/deequoique/Downloads/tyj/techjam-conversational-search/src/agent.py`
-- Metrics/ablations: `/Users/deequoique/Downloads/tyj/result/metrics_structured.json`, `/Users/deequoique/Downloads/tyj/result/ablations.json`
+- Competitor structured pool: `tyj/techjam-conversational-search/src/retrieval.py`
+- Constraint matching: `tyj/techjam-conversational-search/src/constraints.py`
+- Exhaustion, gate, other policy: `tyj/techjam-conversational-search/src/state.py`
+- Orchestration: `tyj/techjam-conversational-search/src/agent.py`
+- Metrics/ablations: `tyj/result/metrics_structured.json`, `tyj/result/ablations.json`
 - Simulator semantics: `evaluator/local_evaluator.py`
