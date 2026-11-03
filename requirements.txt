@@ -1,6 +1,6 @@
 # ContestAgent PUBLIC scoring path uses the Python standard library only
 # when MiniLM weights are absent (dense=0). That path is runnable, not
-# score-equivalent (holdout Hit 0.980→0.975). Frozen-configuration MiniLM:
+# score-equivalent (holdout Hit 0.980 -> 0.975). Frozen-configuration MiniLM:
 #   python scripts/vendor_minilm.py
 # torch
 # transformers
