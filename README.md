@@ -14,9 +14,14 @@ frozen 50,000-item Amazon catalog. The agent decides, every turn, whether it has
 **enough evidence to recommend** or should **spend one more turn asking**. It runs
 fully offline at **0 tokens and $0 per session**.
 
-**Headline result:** on 800 unseen, ID-disjoint sessions the stopping controller
-produces **+60 rank-1 recommendations with zero Hit-rate loss**, improving on
-**8 of 8** shards.
+**Headline result:** on 800 unseen, ID-disjoint sessions, compared with config A
+(the same agent with its three extra-question rules E1–E3 switched off), the
+stopping controller produces **+60 rank-1 recommendations** (612 → 672) **with
+zero Hit-rate loss**, raising TechnicalScore on **8 of 8** shards. The cost is
+longer dialogues: MTTC 2.71 → 2.8975 turns on the same 800 sessions.
+"Value-of-Information" here names a rule-based stop/ask heuristic (three
+hand-set rules on scenario, disclosed slots and pool size), not an
+expected-information computation.
 
 | Set | n | Hit@10 | MRR | MTTC | TechnicalScore | Rank-1 |
 |---|---:|---:|---:|---:|---:|---:|
@@ -45,12 +50,33 @@ per-shard records. Rank-1 exists only in the per-session records and is always
 recounted. Changing a digit in the score table, pointing a row at a different
 file, or letting a result file drift turns the CI badge red.
 
+The Random-800 comparison is also committed session by session, for both arms:
+`holdout/shards/hashseed0/` and `holdout/shards/hashseed3/`, each with `A/` and
+`e123/out_0..7.json`. They were rerun on 2026-11-03 with `eval_shard.py --arm
+A|e123` on the frozen catalog and the pinned MiniLM weights, once per fixed hash
+seed. Both reruns reproduce every per-shard rank-1 count (612 and 672 in total),
+e123 ahead on all 8 shards, and the same hit set in both arms, session by
+session; `tests/test_shard_sessions.py` recounts all of it. Their pooled e123
+numbers differ slightly from the table row, which comes from the original
+unseeded run: `PYTHONHASHSEED=0`: Hit@10 0.9725, MRR 0.88783;
+`PYTHONHASHSEED=3`: Hit@10 0.97375, MRR 0.888143. See the reproducibility note
+below.
+
 Two older artifacts in `holdout/` measure the same 800 sessions under an earlier
-configuration and are **superseded**: `holdout/shards/out_0..7.json` and
+configuration and are **superseded**: `holdout/shards/pre_freeze/out_0..7.json` and
 `holdout/random800_compare.json` pool to Hit 0.9725 / MRR 0.824885 / MTTC 2.69125
 / TechnicalScore 0.89989, recorded before the E123 freeze commit `3a31ace`. They
 are kept as the research trail, not as the reported result; each now carries a
 `snapshot` field saying so.
+
+**Reproducibility note.** Ties in the agent's ranking follow Python's string-hash
+order, so a run repeats exactly only under a fixed `PYTHONHASHSEED`. The likely
+source is the iteration over the observed-token set in
+`ContestState.query_tokens`, which feeds float sums in `rank()`. Rerun on
+2026-11-03 under seeds 0 and 3, the Public and holdout rows came out identical
+to the table; a few Random-800 sessions ended at a different rank (see above).
+Making the order deterministic would change the frozen configuration, so it is
+left as an open issue rather than patched here.
 
 Every number above was produced with `usage = 0 prompt tokens, 0 completion tokens`.
 The public-set score is **not** a prediction for the organizer's private 800 sessions;
@@ -71,7 +97,7 @@ python -S demo/fixture.py
 python -S demo/run_demo.py --session public_0002   # Intent Override
 python -S demo/run_demo.py --scenario browsing     # public_0007
 
-# Full test suite: 182 tests; the staged-ZIP check skips until a ZIP is built.
+# Full test suite, standard library only; the staged-ZIP check skips until a ZIP is built.
 python -S -m unittest discover -s tests -v
 ```
 
@@ -121,7 +147,8 @@ the historical MiniLM results in the opening table.
 
 Additional evaluation entry points: `eval_contest.py --only public` scores the public
 200 and writes `results_contest_public.json`; `eval_holdout.py` scores our own
-holdout 200; `eval_shard.py` scores one shard of the random 800.
+holdout 200; `eval_shard.py --arm A|e123` scores one shard of the random 800 for
+either arm of the comparison (set `PYTHONHASHSEED` to make the run repeatable).
 
 ## How It Works
 
@@ -150,8 +177,10 @@ The key insight is that **a small candidate pool does not mean the agent has eno
 information**. Slot-disclosure trajectories differ by scenario — Buying tends to go
 `1 → +2 → +1 → exhausted`, Browsing `0 → +2 → +2 → exhausted`. The controller decides
 using scenario, number of disclosed slots, whether "no additional preference" was
-already received, and pool size. It never inspects the remaining turn budget and never
-changes `rank()`.
+already received, and pool size. It never reads the evaluator's remaining-turn
+count or the target, and never changes `rank()`. It does know the 10-turn cap:
+every deferral rule switches off from turn 9 on (`state.turn >= 9`, pinned by
+`tests/test_turn_cutoff.py`).
 
 MiniLM is applied as **late fusion only**: the conjunction produces a hard pool first,
 then `score += 0.1 × min-max(cosine)`. It never replaces popularity and never
@@ -322,3 +351,14 @@ The catalog and sessions are derived from Amazon Reviews 2023 by McAuley Lab, UC
 Sessions are sampled deterministically from the official Clothing 5-core
 leave-last-out split and joined to the frozen catalog. See `DATA_ATTRIBUTION.md`
 before using or redistributing the data.
+
+## License
+
+No license has been chosen for this team repository yet, so default copyright
+applies to the team's code; picking one needs every team member's agreement.
+Files that came with the organizer's participant kit (among them
+`evaluator/local_evaluator.py`, `docs/competition_specification.md`,
+`docs/submission_rules.md`, `docs/agent_api_contract.json`,
+`docs/evaluation_config.json`, `docs/baseline_results.json` and
+`data/public_set.jsonl`) are not ours to license; their terms are the
+organizer's. For the catalog data see `DATA_ATTRIBUTION.md`.

@@ -2,6 +2,12 @@
 
 > 提交时点记录，未按当前仓库改写：文中的仓库名与分支名（`contest/public`、`legacy/qwen`）是当时的叫法，本仓库除 PR 分支外只有 `main` 与 `v2/shelf-recall`，计分实现在 `main`。见 README 的 Branches 一节。
 
+> **English note.** Written at submission time. The algorithm-freeze commit
+> `3a31ace` is in this repository's `main` history:
+> <https://github.com/LUOaini1213/track4/commit/3a31aceb969a0697511e254f7273f8b57cb40fce>.
+> The personal repository `techjam-conversational-search` and its branch
+> `contest/public` named below are not public; read the frozen code here instead.
+
 E123 不再当实验版。只在 **正确性 bug** 或 **真正新的信息源** 时重开 PUBLIC。holdout 上 +0.0005 的新 heuristic 不碰冻结配置。**不要再优化 E123 或 `rank()`。**
 
 答辩主线：**Evidence-Aware Conversational Search with Value-of-Information Stopping**。
